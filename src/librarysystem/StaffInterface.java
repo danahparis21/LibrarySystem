@@ -75,13 +75,13 @@ public class StaffInterface extends JFrame {
         // Open Member Management Window
         manageMembersButton.addActionListener(e -> new ManageMembers().setVisible(true));
 
-        // Open Borrow/Return Window
-        //borrowReturnButton.addActionListener(e -> new BorrowReturn().setVisible(true));
+        
+        borrowReturnButton.addActionListener(e -> new BorrowReturn().setVisible(true));
 
 
 
         refreshButton.addActionListener(e -> loadBookData());
-        addButton.addActionListener(e -> new addBook().setVisible(true));
+        
         updateButton.addActionListener(e -> updateBook());
         deleteButton.addActionListener(e -> deleteBook());
         searchButton.addActionListener(e -> searchBooks());
