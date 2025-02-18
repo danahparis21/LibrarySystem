@@ -1,11 +1,12 @@
 package librarysystem;
+
 import javax.mail.*;
 import javax.mail.internet.*;
 import java.util.Properties;
 
 public class SendEmail {
-    public static void main(String[] args) {
-        String to = "danahparis.inf@gmail.com"; // Recipient's email address
+    // Method to send email notification
+    public static void sendEmail(String to, String bookTitle) {
         String from = "library.systemm21@gmail.com"; // Your Gmail address
         String host = "smtp.gmail.com"; // Gmail's SMTP server
 
@@ -23,13 +24,13 @@ public class SendEmail {
             }
         });
 
-        try {       
+        try {
             // Create a message
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from)); // Set from address
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to)); // Set recipient
-            message.setSubject("Test Email from Java"); // Set subject
-            message.setText("This is a test email sent from Java, HII :D!"); // Set message body
+            message.setSubject("Overdue Book Notification"); // Set subject
+            message.setText("Dear User, \n\nThis is a reminder that the book '" + bookTitle + "' is overdue. Please return it at your earliest convenience.\n\nThank you."); // Set message body
 
             // Send the email
             Transport.send(message);

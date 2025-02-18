@@ -15,6 +15,7 @@ public class BorrowReturn extends JFrame {
     private JTable booksTable, borrowedBooksTable;
     private DefaultTableModel booksModel, borrowedModel;
     private Connection connection;
+    String userPhone ;
 
     public BorrowReturn() {
         setTitle("Borrow/Return Books");
@@ -75,17 +76,12 @@ public class BorrowReturn extends JFrame {
         }
 
         // Get the user's details (email, phone number)
-        String userID = borrowedBooksTable.getValueAt(selectedRow, 0).toString();
-        String bookTitle = borrowedBooksTable.getValueAt(selectedRow, 1).toString();
-        String userEmail = getUserEmail(userID);  // Fetch email from database
-        String userPhone = getUserPhone(userID);  // Fetch phone number from database
+        String userID = borrowedBooksTable.getValueAt(selectedRow, 1).toString();
+        String bookTitle = borrowedBooksTable.getValueAt(selectedRow, 2).toString();
+        String userEmail = getUserEmail(userID);
+        System.out.println("User Email: " + userEmail);  // Debugging
 
-        // Check if the book is overdue
-        String status = borrowedBooksTable.getValueAt(selectedRow, 4).toString();
-        if (!"Overdue".equals(status)) {
-            JOptionPane.showMessageDialog(null, "This book is not overdue yet.");
-            return;
-        }
+        String userPhone = "+639605574527";  // Use fixed phone number directly
 
         // Send the notifications
         if (userEmail != null && userPhone != null) {
@@ -97,6 +93,7 @@ public class BorrowReturn extends JFrame {
         }
     }
 });
+
 
 
 
@@ -118,7 +115,7 @@ public class BorrowReturn extends JFrame {
         });
 
         // Borrowed Books Table
-        borrowedModel = new DefaultTableModel(new String[]{"Borrow ID", "Book Title", "Borrow Date", "Due Date", "Status", "Fine"}, 0);
+        borrowedModel = new DefaultTableModel(new String[]{"Borrow ID", "User ID", "Book Title", "Borrow Date", "Due Date", "Status", "Fine"}, 0);
         borrowedBooksTable = new JTable(borrowedModel);
         JScrollPane borrowedScrollPane = new JScrollPane(borrowedBooksTable);
         borrowedScrollPane.setBounds(350, 240, 320, 200);
@@ -158,35 +155,51 @@ public class BorrowReturn extends JFrame {
         loadBooks();
     }
     
-    private String getUserEmail(String userID) {
-    try {
-        PreparedStatement stmt = connection.prepareStatement("SELECT email FROM Users WHERE userID = ?");
-        stmt.setString(1, userID);
-        ResultSet rs = stmt.executeQuery();
-        if (rs.next()) {
-            return rs.getString("email");
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-    return null;
-}
+    public String getUserEmail(String userID) {
+        
+        
+        
+        String email = null;
+        try {
+            String query = "SELECT email FROM users WHERE userID = ?";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, userID);
+            ResultSet resultSet = statement.executeQuery();
 
-private String getUserPhone(String userID) {
-    try {
-        PreparedStatement stmt = connection.prepareStatement("SELECT phone FROM Users WHERE userID = ?");
-        stmt.setString(1, userID);
-        ResultSet rs = stmt.executeQuery();
-        if (rs.next()) {
-            return rs.getString("phone");
+            if (resultSet.next()) {
+                email = resultSet.getString("email");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return email;
     }
-    return null;
-}
 
-    se
+
+//    private String getUserPhone(String userID) {
+//        try {
+//            PreparedStatement stmt = connection.prepareStatement("SELECT contact FROM users WHERE userID = ?");
+//            stmt.setString(1, userID);
+//            ResultSet rs = stmt.executeQuery();
+//            if (rs.next()) {
+//                String phone = rs.getString("contact");
+//                 System.out.println("User phone: " + phone);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
+
+        private void sendEmail(String userEmail, String bookTitle) {
+        // Call the static method from the SendEmail class
+        SendEmail.sendEmail(userEmail, bookTitle);
+    }
+
+
+    private void sendSMS(String userPhone, String bookTitle) {
+        TwilioSMS.sendSMS("+639605574527", bookTitle);
+    }
 
 
 
@@ -266,7 +279,7 @@ private String getUserPhone(String userID) {
         try {
             String userID = userIDField.getText();  // Get the userID from the text field
             PreparedStatement stmt = connection.prepareStatement(
-                    "SELECT BB.borrowID, B.title, BB.borrowDate, BB.dueDate, BB.status FROM BorrowedBooks BB "
+                    "SELECT BB.borrowID, BB.userID,  B.title, BB.borrowDate, BB.dueDate, BB.status FROM BorrowedBooks BB "
                     + "JOIN Books B ON BB.bookID = B.bookID WHERE BB.userID = ? AND BB.returnDate IS NULL");
             stmt.setString(1, userID);  // Set the userID in the query
             ResultSet rs = stmt.executeQuery();
@@ -286,7 +299,7 @@ private String getUserPhone(String userID) {
                 }
 
                 // Add the borrowID to the table row
-                borrowedModel.addRow(new Object[]{rs.getInt("borrowID"), rs.getString("title"), rs.getString("borrowDate"), dueDateStr, status, "$" + fine});
+                borrowedModel.addRow(new Object[]{rs.getInt("borrowID"),rs.getInt("userID"), rs.getString("title"), rs.getString("borrowDate"), dueDateStr, status, "$" + fine});
             }
         } catch (Exception e) {
             e.printStackTrace();
