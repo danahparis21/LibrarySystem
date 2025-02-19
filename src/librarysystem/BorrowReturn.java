@@ -208,8 +208,11 @@ public class BorrowReturn extends JFrame {
             String userID = userIDField.getText();
             String bookID = bookIDField.getText();
             String borrowDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-            String dueDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis() + 14L * 24 * 60 * 60 * 1000));
+            //String dueDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis() + 14L * 24 * 60 * 60 * 1000));
+            String dueDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis() + 1L * 24 * 60 * 60 * 1000));
 
+            
+            
             PreparedStatement checkAvailability = connection.prepareStatement("SELECT quantity FROM Books WHERE bookID = ?");
             checkAvailability.setString(1, bookID);
             ResultSet rs = checkAvailability.executeQuery();

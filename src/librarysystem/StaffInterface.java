@@ -8,7 +8,7 @@ import java.sql.*;
 public class StaffInterface extends JFrame {
      private JTable bookTable;
     private DefaultTableModel tableModel;
-    private JButton addButton, updateButton, deleteButton, refreshButton, searchButton;
+    private JButton addButton, updateButton, deleteButton, refreshButton, searchButton, bookReservationsButton;
     private JTextField searchField;
     private JComboBox<String> searchFilter;
     private Connection connection;
@@ -71,12 +71,18 @@ public class StaffInterface extends JFrame {
         JButton borrowReturnButton = new JButton("Borrow/Return");
         borrowReturnButton.setBounds(210, 450, 160, 30);
         add(borrowReturnButton);
+        
+        // Borrow & Return button
+        JButton bookReservationsButton = new JButton("Book Reservations");
+        bookReservationsButton.setBounds(390, 450, 160, 30);
+        add(bookReservationsButton);
 
         // Open Member Management Window
         manageMembersButton.addActionListener(e -> new ManageMembers().setVisible(true));
 
         
         borrowReturnButton.addActionListener(e -> new BorrowReturn().setVisible(true));
+        bookReservationsButton.addActionListener(e -> new BookReservations().setVisible(true));
 
 
 
