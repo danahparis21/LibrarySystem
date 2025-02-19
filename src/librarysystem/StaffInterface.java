@@ -92,6 +92,7 @@ public class StaffInterface extends JFrame {
 
 
         refreshButton.addActionListener(e -> loadBookData());
+        addButton.addActionListener(e -> new addBook().setVisible(true));
         
         updateButton.addActionListener(e -> updateBook());
         deleteButton.addActionListener(e -> deleteBook());
