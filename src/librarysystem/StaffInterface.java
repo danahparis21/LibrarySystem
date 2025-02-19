@@ -73,9 +73,13 @@ public class StaffInterface extends JFrame {
         add(borrowReturnButton);
         
         // Borrow & Return button
-        JButton bookReservationsButton = new JButton("Book Reservations");
+        bookReservationsButton = new JButton("Book Reservations");
         bookReservationsButton.setBounds(390, 450, 160, 30);
         add(bookReservationsButton);
+        
+        JButton dataAnalyticsButton = new JButton("Data Analytics");
+        dataAnalyticsButton.setBounds(570, 450, 160, 30);
+        add(dataAnalyticsButton);
 
         // Open Member Management Window
         manageMembersButton.addActionListener(e -> new ManageMembers().setVisible(true));
@@ -83,6 +87,7 @@ public class StaffInterface extends JFrame {
         
         borrowReturnButton.addActionListener(e -> new BorrowReturn().setVisible(true));
         bookReservationsButton.addActionListener(e -> new BookReservations().setVisible(true));
+        dataAnalyticsButton.addActionListener(e -> new DataAnalytics().setVisible(true));
 
 
 

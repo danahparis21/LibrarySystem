@@ -24,7 +24,7 @@ public class BorrowReturn extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         connection = Database.connect();
 
-        JLabel userIDLabel = new JLabel("User ID:");
+        JLabel userIDLabel = new JLabel("User ID or Name:");
         userIDLabel.setBounds(30, 30, 100, 25);
         add(userIDLabel);
 
@@ -154,10 +154,28 @@ public class BorrowReturn extends JFrame {
 
         loadBooks();
     }
+    private int getUserID(String input) {
+        try {
+            int userID = Integer.parseInt(input);
+            return userID; // Directly return if input is a numeric userID
+        } catch (NumberFormatException e) {
+            // Input is not a number, treat as username
+            try {
+                String query = "SELECT userID FROM users WHERE name = ?";
+                PreparedStatement pst = connection.prepareStatement(query);
+                pst.setString(1, input);
+                ResultSet rs = pst.executeQuery();
+                if (rs.next()) {
+                    return rs.getInt("userID");
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return -1; // Return -1 if user not found
+    }
     
     public String getUserEmail(String userID) {
-        
-        
         
         String email = null;
         try {
@@ -205,8 +223,10 @@ public class BorrowReturn extends JFrame {
 
     private void borrowBook() {
         try {
-            String userID = userIDField.getText();
+             String userInput = userIDField.getText();
+            int userID = getUserID(userInput);
             String bookID = bookIDField.getText();
+            
             String borrowDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
             //String dueDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis() + 14L * 24 * 60 * 60 * 1000));
             String dueDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis() + 1L * 24 * 60 * 60 * 1000));
@@ -219,7 +239,7 @@ public class BorrowReturn extends JFrame {
 
             if (rs.next() && rs.getInt("quantity") > 0) {
                 PreparedStatement borrowStmt = connection.prepareStatement("INSERT INTO BorrowedBooks (userID, bookID, borrowDate, dueDate) VALUES (?, ?, ?, ?)");
-                borrowStmt.setString(1, userID);
+                borrowStmt.setInt(1, userID);
                 borrowStmt.setString(2, bookID);
                 borrowStmt.setString(3, borrowDate);
                 borrowStmt.setString(4, dueDate);
@@ -243,13 +263,15 @@ public class BorrowReturn extends JFrame {
 
     private void renewBook() {
         try {
-            String userID = userIDField.getText();
+             String userInput = userIDField.getText();
+            int userID = getUserID(userInput);
+        
             String bookID = bookIDField.getText();
             String newDueDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis() + 14L * 24 * 60 * 60 * 1000));
 
             PreparedStatement renewStmt = connection.prepareStatement("UPDATE BorrowedBooks SET dueDate = ? WHERE userID = ? AND bookID = ? AND returnDate IS NULL");
             renewStmt.setString(1, newDueDate);
-            renewStmt.setString(2, userID);
+            renewStmt.setInt(2, userID);
             renewStmt.setString(3, bookID);
             int updated = renewStmt.executeUpdate();
 
@@ -276,38 +298,119 @@ public class BorrowReturn extends JFrame {
             e.printStackTrace();
         }
     }
+    
+    private void checkAndInsertFine(String userID, int borrowID) {
+    try {
+        // Get today's date
+        String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 
-    private void loadBorrowedBooks() {
-        borrowedModel.setRowCount(0);  // Clears the table
-        try {
-            String userID = userIDField.getText();  // Get the userID from the text field
-            PreparedStatement stmt = connection.prepareStatement(
-                    "SELECT BB.borrowID, BB.userID,  B.title, BB.borrowDate, BB.dueDate, BB.status FROM BorrowedBooks BB "
-                    + "JOIN Books B ON BB.bookID = B.bookID WHERE BB.userID = ? AND BB.returnDate IS NULL");
-            stmt.setString(1, userID);  // Set the userID in the query
-            ResultSet rs = stmt.executeQuery();
+        // Check if a fine exists for this specific borrowID
+        PreparedStatement checkStmt = connection.prepareStatement(
+                "SELECT f.fineID, f.amount, b.fineUpdatedDate " +
+                "FROM BorrowedBooks b " +
+                "LEFT JOIN Fines f ON b.borrowID = f.borrowID " + // Filter by borrowID instead of userID
+                "WHERE b.borrowID = ? AND f.status = 'Unpaid'"
+        );
+        checkStmt.setInt(1, borrowID);
+        ResultSet rs = checkStmt.executeQuery();
 
-            while (rs.next()) {
-                String status = rs.getString("status");
-                String dueDateStr = rs.getString("dueDate");
-                int fine = 0;
+        if (rs.next()) {
+            int fineID = rs.getInt("fineID");
+            double currentAmount = rs.getDouble("amount");
+            String fineUpdatedDate = rs.getString("fineUpdatedDate");
 
-                // Check if overdue
-                Date dueDate = new SimpleDateFormat("yyyy-MM-dd").parse(dueDateStr);
-                if (new Date().after(dueDate)) {
-                    status = "Overdue";
-                    long daysOverdue = (new Date().getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24);
-                    fine = (int) daysOverdue;  // $1 per day fine
-                    updateStatusToOverdue(userID, rs.getString("title"));  // You may want to update status to Overdue in the database
-                }
-
-                // Add the borrowID to the table row
-                borrowedModel.addRow(new Object[]{rs.getInt("borrowID"),rs.getInt("userID"), rs.getString("title"), rs.getString("borrowDate"), dueDateStr, status, "$" + fine});
+            // If fine was already updated today, do nothing
+            if (today.equals(fineUpdatedDate)) {
+                return;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+            // Otherwise, increase fine by $1
+            double newAmount = currentAmount + 1.00;
+            PreparedStatement updateFineStmt = connection.prepareStatement(
+                    "UPDATE Fines SET amount = ? WHERE fineID = ?"
+            );
+            updateFineStmt.setDouble(1, newAmount);
+            updateFineStmt.setInt(2, fineID);
+            updateFineStmt.executeUpdate();
+
+            // Update fineUpdatedDate for this specific borrowID
+            PreparedStatement updateDateStmt = connection.prepareStatement(
+                    "UPDATE BorrowedBooks SET fineUpdatedDate = ? WHERE borrowID = ?"
+            );
+            updateDateStmt.setString(1, today);
+            updateDateStmt.setInt(2, borrowID);
+            updateDateStmt.executeUpdate();
+
+        } else {
+            // If no fine exists, insert a new fine **only for this borrowID**
+            PreparedStatement insertFineStmt = connection.prepareStatement(
+                    "INSERT INTO Fines (userID, borrowID, amount, status) VALUES (?, ?, ?, 'Unpaid')",
+                    Statement.RETURN_GENERATED_KEYS
+            );
+            insertFineStmt.setString(1, userID);
+            insertFineStmt.setInt(2, borrowID);
+            insertFineStmt.setDouble(3, 1.00);
+            insertFineStmt.executeUpdate();
+
+            ResultSet generatedKeys = insertFineStmt.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                int newFineID = generatedKeys.getInt(1);
+
+                // Update fineUpdatedDate **only for this borrowID**
+                PreparedStatement updateDateStmt = connection.prepareStatement(
+                        "UPDATE BorrowedBooks SET fineUpdatedDate = ? WHERE borrowID = ?"
+                );
+                updateDateStmt.setString(1, today);
+                updateDateStmt.setInt(2, borrowID);
+                updateDateStmt.executeUpdate();
+            }
         }
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+}
+
+
+private void loadBorrowedBooks() {
+    borrowedModel.setRowCount(0);  // Clears the table
+    try {
+        String userID = userIDField.getText();  // Get the userID from the text field
+        PreparedStatement stmt = connection.prepareStatement(
+                "SELECT BB.borrowID, BB.userID, B.title, BB.borrowDate, BB.dueDate, BB.status, BB.returnDate FROM BorrowedBooks BB "
+                + "JOIN Books B ON BB.bookID = B.bookID WHERE BB.userID = ? AND BB.status != 'Returned'"
+        );
+        stmt.setString(1, userID);
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next()) {
+            int borrowID = rs.getInt("borrowID");
+            String status = rs.getString("status");
+            String dueDateStr = rs.getString("dueDate");
+            String returnDateStr = rs.getString("returnDate");
+            int fine = 0;
+
+            // Parse dueDate
+            Date dueDate = new SimpleDateFormat("yyyy-MM-dd").parse(dueDateStr);
+            Date today = new Date();
+
+            // **Only mark overdue if returnDate is NULL**
+            if (returnDateStr == null && today.after(dueDate)) {
+                status = "Overdue";
+                long daysOverdue = (today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24);
+                fine = (int) daysOverdue;  // $1 per day fine
+
+                updateStatusToOverdue(userID, rs.getString("title"));
+                checkAndInsertFine(userID, borrowID); // Pass borrowID to avoid affecting all books
+            }
+
+            borrowedModel.addRow(new Object[]{borrowID, rs.getInt("userID"), rs.getString("title"), rs.getString("borrowDate"), dueDateStr, status, "$" + fine});
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+
 
 
     private void updateStatusToOverdue(String userID, String bookTitle) {
@@ -396,11 +499,6 @@ public class BorrowReturn extends JFrame {
 
 
 
-
-
-
-
-
     private void payFine() {
         int selectedRow = borrowedBooksTable.getSelectedRow();
 
@@ -415,12 +513,15 @@ public class BorrowReturn extends JFrame {
         // Retrieve the fine amount as a String
         String fineAmountString = (String) borrowedBooksTable.getValueAt(selectedRow, fineColumnIndex);
 
+        // Remove the "$" symbol if present
+        fineAmountString = fineAmountString.replace("$", "").trim();
         // If the fine value is zero (or empty), show a message that no fine needs to be paid
         if (fineAmountString == null || fineAmountString.isEmpty() || fineAmountString.equals("0") || fineAmountString.equals("0.0")) {
             JOptionPane.showMessageDialog(null, "No fines need to be paid. Thank you!");
             return;
         }
 
+        
         double fineAmount = 0.0;
         try {
             fineAmount = Double.parseDouble(fineAmountString);
@@ -430,7 +531,9 @@ public class BorrowReturn extends JFrame {
         }
 
         // Open the payFine window and pass necessary information
-        new PayFineWindow(fineAmount, selectedRow, fineColumnIndex).setVisible(true);
+       // Open the payFine window and pass necessary information, including the table
+        new PayFineWindow(fineAmount, selectedRow, fineColumnIndex, borrowedBooksTable).setVisible(true);
+
     }
 
 
