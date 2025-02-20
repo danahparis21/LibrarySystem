@@ -6,13 +6,14 @@ import java.util.Properties;
 public class NotifyReservation {
     public static void sendEmail(String to, String bookTitle) {
         String from = "library.systemm21@gmail.com"; 
-        String password = "your_app_password_here";  // Use App Password instead of normal password
+        String password = "jwqv iyty ebud xszb"; // App Password
 
-        Properties properties = new Properties();
+        Properties properties = System.getProperties(); // Use system properties like SendEmail
         properties.put("mail.smtp.host", "smtp.gmail.com");
         properties.put("mail.smtp.port", "587");
         properties.put("mail.smtp.starttls.enable", "true");
         properties.put("mail.smtp.auth", "true");
+        properties.put("mail.debug", "true"); // Enable debugging
 
         Session session = Session.getInstance(properties, new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {

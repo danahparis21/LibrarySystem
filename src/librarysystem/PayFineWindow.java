@@ -61,7 +61,7 @@ public class PayFineWindow extends JFrame {
         if (remainingFine <= 0) {
             // Fine fully paid, mark book as returned and remove overdue status
             borrowedBooksTable.setValueAt("0.0", selectedRow, fineColumnIndex); // Set fine to $0
-            borrowedBooksTable.setValueAt("Returned", selectedRow, 3); // Assuming status is at index 3
+            borrowedBooksTable.setValueAt("Returned", selectedRow, 5); // Assuming status is at index 3
             JOptionPane.showMessageDialog(this, "Fine fully paid! The book is now returned.");
         } else {
             // Fine partially paid, update remaining fine

@@ -76,23 +76,28 @@ public class LogInForm extends JFrame {
 
         // 🎯 Login Action
         loginButton.addActionListener(e -> {
-            String username = usernameField.getText();
-            String password = new String(passwordField.getPassword());
+        String username = usernameField.getText();
+        String password = new String(passwordField.getPassword());
 
-            String role = User.login(username, password); // Change to your DB handler
+        User user = User.login(username, password); // Fetch user details
 
-            if (role == null) {
-                JOptionPane.showMessageDialog(null, "Invalid Credentials", "Error", JOptionPane.ERROR_MESSAGE);
-            } else if (role.equals("staff")) {
+        if (user == null) {
+            JOptionPane.showMessageDialog(null, "Invalid Credentials", "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            int userID = user.getUserID();  // Get the user ID
+            String role = user.getRole();
+
+            if (role.equals("staff")) {
                 new StaffInterface().setVisible(true);
                 dispose();
             } else if (role.equals("member")) {
-                //new MemberDashboard(username).setVisible(true);
+                new MemberDashboard(userID).setVisible(true); // Pass userID to MemberDashboard
                 dispose();
             } else {
                 JOptionPane.showMessageDialog(null, "Unexpected error.");
             }
-        });
+        }
+    });
 
         signUpButton.addActionListener(e -> {
             new SignupForm().setVisible(true);

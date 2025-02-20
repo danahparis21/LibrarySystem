@@ -9,7 +9,7 @@ import javax.mail.internet.*;
 
 public class BookReservations extends JFrame {
     private JTable booksTable, reservationsTable;
-    private JButton notifyButton;
+    private JButton notifyButton, closeButton;
     private JCheckBox showCancelled;
     private DefaultTableModel booksModel, reservationsModel;
     private Connection connection;
@@ -37,6 +37,12 @@ public class BookReservations extends JFrame {
         notifyButton.addActionListener(e -> notifyUser());
         add(notifyButton);
         
+        closeButton = new JButton("Close");
+        closeButton.setBounds(600, 470, 100, 30);
+        closeButton.addActionListener(e -> dispose());
+        add(closeButton);
+        
+        
         showCancelled = new JCheckBox("Show Cancelled");
         showCancelled.setBounds(20, 470, 150, 30);
         showCancelled.addActionListener(e -> loadReservations());
@@ -44,6 +50,7 @@ public class BookReservations extends JFrame {
         
         loadBooks();
         booksTable.getSelectionModel().addListSelectionListener(e -> loadReservations());
+        
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
     }

@@ -7,6 +7,24 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class User {
+    
+    private int userID;
+    private String role;
+
+    // Constructor
+    public User(int userID, String role) {
+        this.userID = userID;
+        this.role = role;
+    }
+
+    // Getters
+    public int getUserID() {
+        return userID;
+    }
+
+    public String getRole() {
+        return role;
+    }
 
     // Register a new user
     public static boolean signUp(String name, String email, String password, String address, String contact, String role) {
@@ -46,26 +64,27 @@ public class User {
         }
     }
 
-    public static String login(String name, String password) {
-     String sql = "SELECT role FROM Users WHERE name = ? AND password = ?";
+     // Login method that fetches both userID and role
+    public static User login(String name, String password) {
+        String sql = "SELECT userID, role FROM Users WHERE name = ? AND password = ?";
 
-     try (Connection conn = Database.connect();
-          PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = Database.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-         stmt.setString(1, name);
-         stmt.setString(2, hashPassword(password)); // Compare hashed password
+            stmt.setString(1, name);
+            stmt.setString(2, hashPassword(password)); // Compare hashed password
 
-         ResultSet rs = stmt.executeQuery();
-         if (rs.next()) {
-            return rs.getString("role").trim().toLowerCase(); // Normalize the role for comparison
-            
-         } else {
-             System.out.println("No matching user found for username: " + name);
-         }
-     } catch (SQLException e) {
-         e.printStackTrace();
-     }
-     return null; // Login failed
- }
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                int userID = rs.getInt("userID");  // Fetch userID
+                String role = rs.getString("role").trim().toLowerCase();
+                return new User(userID, role);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // Login failed
+    }
+
 
 }
