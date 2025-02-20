@@ -9,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import javax.swing.table.JTableHeader;
 
 public class MemberDashboard extends JFrame {
     private JTable bookTable, borrowedTable, reservationTable;
@@ -18,7 +19,11 @@ public class MemberDashboard extends JFrame {
     private Connection connection;
     private JLabel profileImage, nameLabel, bioLabel, emailLabel, addressLabel, contactLabel, roleLabel;
     private JTextArea bioField;
-    
+
+    private JButton nextButton, prevButton;
+    private ImageIcon[] profileImages;
+    private int currentImageIndex = 0;
+
     
     // Notifications Panel (Dropdown)
         private JPanel notificationsPanel;
@@ -30,6 +35,8 @@ public class MemberDashboard extends JFrame {
         setTitle("Member Dashboard");
         setSize(1920, 1080);
         setLayout(null);
+        getContentPane().setBackground(Color.WHITE);
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         connection = Database.connect();
         
@@ -41,6 +48,7 @@ public class MemberDashboard extends JFrame {
         // Book List Table
         String[] bookColumns = {"Book ID", "Title", "Author", "Genre", "Quantity", "Location"};
         bookTable = new JTable(new DefaultTableModel(bookColumns, 0));
+        styleTable(bookTable);
         JScrollPane bookScrollPane = new JScrollPane(bookTable);
         bookScrollPane.setBounds(20, 50, 600, 300);
         add(bookScrollPane);
@@ -64,6 +72,7 @@ public class MemberDashboard extends JFrame {
         // Borrowed Books Table
         String[] borrowedColumns = {"Borrow ID", "Book ID", "Title", "Due Date", "Status"};
         borrowedTable = new JTable(new DefaultTableModel(borrowedColumns, 0));
+        styleTable(borrowedTable);
         JScrollPane borrowedScrollPane = new JScrollPane(borrowedTable);
         borrowedScrollPane.setBounds(20, 370, 600, 200);
         add(borrowedScrollPane);
@@ -75,6 +84,7 @@ public class MemberDashboard extends JFrame {
         // Reservation Table
         String[] reservationColumns = {"Reservation ID", "Book ID", "Reservation Date", "Status"};
         reservationTable = new JTable(new DefaultTableModel(reservationColumns, 0));
+        styleTable(reservationTable);
         JScrollPane reservationScrollPane = new JScrollPane(reservationTable);
         reservationScrollPane.setBounds(20, 580, 600, 200);
         add(reservationScrollPane);
@@ -85,14 +95,37 @@ public class MemberDashboard extends JFrame {
         
         // User Profile Section
         // Profile Panel
-        JPanel profilePanel = new JPanel();
-        profilePanel.setLayout(null); // Set null layout
-        profilePanel.setBorder(BorderFactory.createTitledBorder("Profile"));
-        profilePanel.setBounds(1000, 10, 250, 400); // Adjust position and size manually
+        ProfilePanel profilePanel = new ProfilePanel(); 
+      
 
-        // Default Profile Image
-        profileImage = new JLabel(new ImageIcon("default_profile.jpg"));
-        profileImage.setBounds(75, 20, 100, 100); // Adjust size and position manually
+        profilePanel.setLayout(null);
+        profilePanel.setBounds(1130, 5, 500, 780);
+
+        // Load predefined profile images
+            profileImages = new ImageIcon[] {
+        new ImageIcon(getClass().getResource("/icons/default_profile.jpg")),
+        new ImageIcon(getClass().getResource("/icons/librarybg1.png")),
+        new ImageIcon(getClass().getResource("/icons/librarybg3.png"))
+    };
+
+         // Profile Image Label
+        profileImage = new JLabel();
+        profileImage.setBounds(75, 20, 100, 100);
+        updateProfileImage(); // Set the initial image
+
+        // Next & Previous Buttons
+        nextButton = new JButton("Next");
+        nextButton.setBounds(185, 75, 80, 30);
+        nextButton.addActionListener(e -> nextImage());
+
+        prevButton = new JButton("Previous");
+        prevButton.setBounds(10, 75, 100, 30);
+        prevButton.addActionListener(e -> previousImage());
+        profilePanel.add(profileImage);
+        profilePanel.add(profileImage);
+        profilePanel.add(nextButton);
+        profilePanel.add(prevButton);
+
 
         nameLabel = new JLabel("Name: ");
         nameLabel.setBounds(20, 130, 200, 20);
@@ -142,7 +175,7 @@ public class MemberDashboard extends JFrame {
         editProfileButton.addActionListener(e -> new editProfile(userID).setVisible(true));
 
         // Add components to profilePanel
-        profilePanel.add(profileImage);
+       // profilePanel.add(profileImage);
         profilePanel.add(nameLabel);
         profilePanel.add(bioLabel);
         profilePanel.add(emailLabel);
@@ -156,11 +189,7 @@ public class MemberDashboard extends JFrame {
         // Add profilePanel to the main container
         add(profilePanel);
 
-        
-        
-        
-        
-        
+    
         //======
         
         
@@ -243,6 +272,106 @@ public class MemberDashboard extends JFrame {
 
         setVisible(true);
     }
+    
+    // Method to update profile image
+        private void updateProfileImage() {
+            if (profileImages[currentImageIndex].getIconWidth() > 0) {
+                Image image = profileImages[currentImageIndex].getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                profileImage.setIcon(new ImageIcon(image));
+            }
+        }
+
+        // Method to switch to the next image
+        private void nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % profileImages.length;
+            updateProfileImage();
+        }
+
+        // Method to switch to the previous image
+        private void previousImage() {
+            currentImageIndex = (currentImageIndex - 1 + profileImages.length) % profileImages.length;
+            updateProfileImage();
+        }
+    
+    
+    private void styleTable(JTable table) {
+            // Table Header Styling
+            JTableHeader header = table.getTableHeader();
+            header.setFont(new Font("SansSerif", Font.BOLD, 16));
+            header.setBackground(new Color(0xF0F0F0)); // Light Gray Header
+            header.setForeground(new Color(0x393939));
+            header.setOpaque(true);
+
+            // Table Body Styling
+            table.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            table.setRowHeight(30);
+            table.setBackground(Color.WHITE);
+            table.setForeground(new Color(0x393939));
+            table.setGridColor(new Color(0xE0E0E0)); // Lighter Grid Color
+            table.setShowGrid(false);
+            table.setIntercellSpacing(new Dimension(0, 0));
+
+            // Selection Styling
+            table.setSelectionBackground(new Color(0xE0E0E0)); // Soft Gray Selection
+            table.setSelectionForeground(new Color(0x393939));
+
+            // Borderless Look
+            table.setBorder(BorderFactory.createEmptyBorder());
+        }
+
+        private JLabel createLabel(String text, int x, int y, JPanel panel) {
+            JLabel label = new JLabel(text);
+            label.setFont(new Font("SansSerif", Font.BOLD, 18)); // More modern
+            label.setBounds(x, y, 150, 30);
+            panel.add(label);
+            return label;
+        }
+
+        private JTextField createTextField(String text, int x, int y, JPanel panel) {
+            JTextField textField = new JTextField(text);
+            textField.setFont(new Font("SansSerif", Font.PLAIN, 18)); // Match overall style
+            textField.setBounds(x, y, 120, 35);
+            textField.setBorder(BorderFactory.createLineBorder(new Color(0xD3D3D3), 1)); // Subtle border
+            panel.add(textField);
+            return textField;
+        }
+
+        private JButton createButton(String text, int x, int y, JPanel panel) {
+            JButton button = new JButton(text);
+            button.setFont(new Font("SansSerif", Font.BOLD, 14));
+            button.setBounds(x, y, 200, 50);
+
+            // Light theme colors
+            Color defaultBg = Color.WHITE;
+            Color defaultFg = new Color(0x393939);
+            Color hoverBg = new Color(0xE0E0E0);
+            Color hoverFg = Color.BLACK;
+
+            // Apply default styling
+            button.setBackground(defaultBg);
+            button.setForeground(defaultFg);
+            button.setBorder(BorderFactory.createLineBorder(new Color(0xD3D3D3), 1));
+            button.setFocusPainted(false);
+            button.setOpaque(true);
+
+            // Add hover effect
+            button.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    button.setBackground(hoverBg);
+                    button.setForeground(hoverFg);
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    button.setBackground(defaultBg);
+                    button.setForeground(defaultFg);
+                }
+            });
+
+            panel.add(button);
+            return button;
+        }
     
     private void saveBioToDatabase() {
         try {
@@ -623,7 +752,10 @@ public class MemberDashboard extends JFrame {
         statusLabel.setText("Error canceling reservation.");
     }
 }
-
+ public static void main(String[] args) {
+      int userID = 1;
+        new MemberDashboard(userID).setVisible(true);
+    }
     
     
 }

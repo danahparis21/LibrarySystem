@@ -41,12 +41,20 @@ public class SignupForm extends JFrame {
 
         // Signup Panel
         JPanel signupPanel = new JPanel();
-        signupPanel.setBounds((getWidth() - 400) / 2, (int) (getHeight() * 0.55), 100, 100);
-        signupPanel.setBackground(new Color(255, 255, 255, 180));
+        signupPanel.setBounds(100, 50, 500, 700); // Move more to the left and higher
+        signupPanel.setBackground(new Color(255, 255, 255, 200));
         signupPanel.setLayout(null);
+        
         signupPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        background.add(signupPanel);
+                // 🏷️ Huge "Log In" Label
+        JLabel signupTitle = new JLabel("Sign Up");
+        signupTitle.setFont(new Font("Arial", Font.BOLD, 50)); // Big bold text
+        signupTitle.setForeground(new Color(50, 50, 50)); // Dark gray color
+        signupTitle.setBounds(160, 30, 200, 100); // Adjust position inside login panel
 
+        signupPanel.add(signupTitle); // Add label to the panel
+        background.add(signupPanel); // Add login panel to background
+        
         Font labelFont = new Font("SansSerif", Font.BOLD, 14);
         Color normalGold = new Color(186, 156, 96);
         
@@ -56,72 +64,72 @@ public class SignupForm extends JFrame {
 
         // Name
         JLabel nameLabel = new JLabel("Name:");
-        nameLabel.setBounds(50, 30, 100, 30);
+        nameLabel.setBounds(80, 200, 100, 30);
         nameLabel.setFont(labelFont);
         signupPanel.add(nameLabel);
 
         nameField = new JTextField();
-        nameField.setBounds(150, 30, 200, 30);
+        nameField.setBounds(180, 200, 200, 30);
         signupPanel.add(nameField);
 
         // Email
         JLabel emailLabel = new JLabel("Email:");
-        emailLabel.setBounds(50, 70, 100, 30);
+        emailLabel.setBounds(80, 250, 100, 30);
         emailLabel.setFont(labelFont);
         signupPanel.add(emailLabel);
 
         emailField = new JTextField();
-        emailField.setBounds(150, 70, 200, 30);
+        emailField.setBounds(180, 250, 200, 30);
         signupPanel.add(emailField);
 
         // Contact
         JLabel contactLabel = new JLabel("Contact:");
-        contactLabel.setBounds(50, 110, 100, 30);
+        contactLabel.setBounds(80, 300, 100, 30);
         contactLabel.setFont(labelFont);
         signupPanel.add(contactLabel);
 
         contactField = new JTextField();
-        contactField.setBounds(150, 110, 200, 30);
+        contactField.setBounds(180, 300, 200, 30);
         signupPanel.add(contactField);
 
         // Address
         JLabel addressLabel = new JLabel("Address:");
-        addressLabel.setBounds(50, 150, 100, 30);
+        addressLabel.setBounds(80, 350, 100, 30);
         addressLabel.setFont(labelFont);
         signupPanel.add(addressLabel);
 
         addressField = new JTextField();
-        addressField.setBounds(150, 150, 200, 30);
+        addressField.setBounds(180, 350, 200, 30);
         signupPanel.add(addressField);
 
         // Password
         JLabel passLabel = new JLabel("Password:");
-        passLabel.setBounds(50, 190, 100, 30);
+        passLabel.setBounds(80, 400, 100, 30);
         passLabel.setFont(labelFont);
         signupPanel.add(passLabel);
 
         passwordField = new JPasswordField();
-        passwordField.setBounds(150, 190, 200, 30);
+        passwordField.setBounds(180, 400, 200, 30);
         signupPanel.add(passwordField);
 
         // Role
         JLabel roleLabel = new JLabel("Role:");
-        roleLabel.setBounds(50, 230, 100, 30);
+        roleLabel.setBounds(80, 450, 100, 30);
         roleLabel.setFont(labelFont);
         signupPanel.add(roleLabel);
 
         roleComboBox = new JComboBox<>(new String[]{"Member", "Staff"});
-        roleComboBox.setBounds(150, 230, 200, 30);
+        roleComboBox.setBounds(180, 450, 200, 30);
         signupPanel.add(roleComboBox);
 
         // Buttons
         registerButton = new JButton("Register");
-        registerButton.setBounds(50, 270, 140, 40);
+        registerButton.setBounds(80, 500, 140, 40);
         styleButton(registerButton, normalGold, hoverGold, pressedGold);
         signupPanel.add(registerButton);
 
         backButton = new JButton("Back");
-        backButton.setBounds(210, 270, 140, 40);
+        backButton.setBounds(250, 500, 140, 40);
         styleButton(backButton, normalGold, hoverGold, pressedGold);
         signupPanel.add(backButton);
 
@@ -166,7 +174,7 @@ public class SignupForm extends JFrame {
         resizeBackground();
     }
 
-        // 🎨 Button Styling
+      // 🎨 Button Styling
        private void styleButton(JButton button, Color normalColor, Color hoverColor, Color pressedColor) {
         button.setBackground(normalColor);
         button.setForeground(Color.WHITE);
@@ -201,8 +209,10 @@ public class SignupForm extends JFrame {
             }
         });
     }
-       
-    private void resizeBackground() {
+
+   
+
+     private void resizeBackground() {
         int width = getWidth();
         int height = getHeight();
 
@@ -217,9 +227,10 @@ public class SignupForm extends JFrame {
         // Reposition login panel dynamically
         for (Component comp : components) {
             if (comp instanceof JPanel) {
-                comp.setBounds((width - 400) / 2, (int) (height * 0.5), 400, 300);
+                comp.setBounds(100, 50, 500, 700); // Keep it on the left
             }
         }
+
 
     }
 
