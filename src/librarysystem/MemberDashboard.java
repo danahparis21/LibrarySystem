@@ -3,6 +3,9 @@ package librarysystem;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -13,6 +16,9 @@ public class MemberDashboard extends JFrame {
     private JLabel userProfileLabel, statusLabel;
     private int userID; // Logged-in user ID
     private Connection connection;
+    private JLabel profileImage, nameLabel, bioLabel, emailLabel, addressLabel, contactLabel, roleLabel;
+    private JTextArea bioField;
+    
     
     // Notifications Panel (Dropdown)
         private JPanel notificationsPanel;
@@ -78,13 +84,86 @@ public class MemberDashboard extends JFrame {
         add(cancelButton);
         
         // User Profile Section
-        userProfileLabel = new JLabel("User Profile");
-        userProfileLabel.setBounds(900, 50, 1000, 30);
-        add(userProfileLabel);
+        // Profile Panel
+        JPanel profilePanel = new JPanel();
+        profilePanel.setLayout(null); // Set null layout
+        profilePanel.setBorder(BorderFactory.createTitledBorder("Profile"));
+        profilePanel.setBounds(1000, 10, 250, 400); // Adjust position and size manually
+
+        // Default Profile Image
+        profileImage = new JLabel(new ImageIcon("default_profile.jpg"));
+        profileImage.setBounds(75, 20, 100, 100); // Adjust size and position manually
+
+        nameLabel = new JLabel("Name: ");
+        nameLabel.setBounds(20, 130, 200, 20);
+
+        // Create and position the bio label
+        bioLabel = new JLabel("Bio:");
+        bioLabel.setBounds(20, 160, 200, 20);
+
+        // Create a larger, scrollable bio field
+        bioField = new JTextArea(3, 20); // 3 rows, 20 columns
+        bioField.setWrapStyleWord(true);
+        bioField.setLineWrap(true);
+        bioField.setFont(new Font("Arial", Font.PLAIN, 14)); // Make it look cleaner
+        bioField.setBorder(BorderFactory.createLineBorder(Color.GRAY)); // Add a border
+        bioField.setForeground(new Color(64, 64, 64)); // Slightly darker text color
+
+        // Wrap bioField in a JScrollPane for scrolling (helps if the bio is long!)
+        JScrollPane bioScroll = new JScrollPane(bioField);
+        bioScroll.setBounds(40, 160, 200, 60); // Adjusted for better spacing
         
+        bioField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) { // Detect Enter key
+                    e.consume(); // Prevent new line in JTextArea
+                    saveBioToDatabase();
+                }
+            }
+        });
+
+
+        emailLabel = new JLabel("Email: ");
+        emailLabel.setBounds(20, 210, 200, 20);
+
+        addressLabel = new JLabel("Address:");
+        addressLabel.setBounds(20, 230, 200, 20);
+
+        contactLabel = new JLabel("Contact: ");
+        contactLabel.setBounds(20, 260, 200, 20);
+
+        roleLabel = new JLabel("Role: Member");
+        roleLabel.setBounds(20, 290, 200, 20);
+
         editProfileButton = new JButton("Edit Profile");
-        editProfileButton.setBounds(1200, 100, 150, 30);
-        add(editProfileButton);
+        editProfileButton.setBounds(75, 320, 100, 30);
+
+        editProfileButton.addActionListener(e -> new editProfile(userID).setVisible(true));
+
+        // Add components to profilePanel
+        profilePanel.add(profileImage);
+        profilePanel.add(nameLabel);
+        profilePanel.add(bioLabel);
+        profilePanel.add(emailLabel);
+        profilePanel.add(addressLabel);
+        profilePanel.add(contactLabel);
+        profilePanel.add(roleLabel);
+        profilePanel.add(editProfileButton);
+        profilePanel.add(bioScroll);
+
+
+        // Add profilePanel to the main container
+        add(profilePanel);
+
+        
+        
+        
+        
+        
+        //======
+        
+        
         
         logOutButton = new JButton("Log Out");
         logOutButton.setBounds(1200, 500, 150, 30);
@@ -92,14 +171,54 @@ public class MemberDashboard extends JFrame {
         
         // Notifications Button
         notificationsButton = new JButton("Notifications");
-        notificationsButton.setBounds(1200, 150, 150, 30);
+        notificationsButton.setBounds(800, 150, 150, 30);
         add(notificationsButton);
+        
+          notificationsPanel = new JPanel();
+        notificationsPanel.setLayout(new BorderLayout());
+        notificationsPanel.setBounds(800, 180, 250, 300); // Position below the button
+        notificationsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        notificationsPanel.setBackground(Color.WHITE);
+        notificationsPanel.setVisible(false); // Hidden by default
+
+        // Scrollable list of notifications
+        notificationListModel = new DefaultListModel<>();
+        notificationList = new JList<>(notificationListModel);
+        JScrollPane scrollPane = new JScrollPane(notificationList);
+        notificationsPanel.add(scrollPane, BorderLayout.CENTER);
+
+        add(notificationsPanel);
+        // Show/hide notifications on button click
+        notificationsButton.addActionListener(e -> {
+            notificationsPanel.setVisible(!notificationsPanel.isVisible());
+            loadNotifications();
+            
+        });
+        notificationList.addListSelectionListener(e -> {
+    if (!e.getValueIsAdjusting()) {
+        String selectedNotification = notificationList.getSelectedValue();
+        if (selectedNotification != null) {
+            if (selectedNotification.contains("overdue")) {
+                JOptionPane.showMessageDialog(this, "Please go to the Library to return the book and pay fines.");
+            }
+            if (selectedNotification.contains("reservation")) {
+                JOptionPane.showMessageDialog(this, "Proceed to Library to Pick up your Book!\n Thanks for your Patience");
+            }
+            notificationsPanel.setVisible(false); // Hide panel after clicking
+        }
+    }
+});
+
         
         // Load Data
         loadBooks();
         loadBorrowedBooks();
         loadReservations();
         loadUserProfile();
+        checkOverdueBooks();
+        checkReservations();
+         loadUserProfile();
+
         
         // Button Listeners
         cancelButton.addActionListener(e -> cancelBook());
@@ -111,6 +230,9 @@ public class MemberDashboard extends JFrame {
             loadBorrowedBooks();
             loadReservations();
             loadUserProfile();
+            checkOverdueBooks();
+            checkReservations();
+             loadUserProfile();
             statusLabel.setText("Data refreshed.");
         });
         
@@ -122,6 +244,115 @@ public class MemberDashboard extends JFrame {
         setVisible(true);
     }
     
+    private void saveBioToDatabase() {
+        try {
+            String newBio = bioField.getText().trim(); // Get text & remove spaces
+            String query = "UPDATE Users SET bio = ? WHERE userID = ?";
+            PreparedStatement stmt = connection.prepareStatement(query);
+            stmt.setString(1, newBio);
+            stmt.setInt(2, userID);
+            int rowsUpdated = stmt.executeUpdate();
+            stmt.close();
+
+            if (rowsUpdated > 0) {
+                JOptionPane.showMessageDialog(null, "Bio updated successfully! 💾✨");
+            } else {
+                JOptionPane.showMessageDialog(null, "Failed to update bio! ❌");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+   
+        private void loadUserProfile() {
+         try {
+             String query = "SELECT name, bio, email, address, contact, role FROM Users WHERE userID = ?";
+             PreparedStatement stmt = connection.prepareStatement(query);
+             stmt.setInt(1, userID);
+             ResultSet rs = stmt.executeQuery();
+
+             if (rs.next()) {
+                 nameLabel.setText("Name: " + rs.getString("name"));
+
+                 // ✅ Fix bio null handling & add some formatting
+                 String bioText = rs.getString("bio");
+                 bioField.setText(bioText != null && !bioText.trim().isEmpty() ? bioText : "No bio set 📝");
+
+                 emailLabel.setText("Email: " + rs.getString("email"));
+                 addressLabel.setText("Address: " + rs.getString("address"));
+                 contactLabel.setText("Contact: " + rs.getString("contact"));
+                 roleLabel.setText("Role: " + rs.getString("role"));
+             }
+
+             rs.close();
+             stmt.close();
+         } catch (SQLException e) {
+             e.printStackTrace();
+         }
+     }
+
+
+    
+   private void loadNotifications() {
+    notificationListModel.clear();
+    try {
+        String query = "SELECT message FROM Notifications WHERE userID = ? ORDER BY createdAt DESC";
+        PreparedStatement ps = connection.prepareStatement(query);
+        ps.setInt(1, userID);
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            notificationListModel.addElement(rs.getString("message"));
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+   
+   private void checkReservations() {
+    try {
+        String query = "SELECT reservationID, bookID FROM Reservations " +
+                       "WHERE userID = ? AND status = 'Notified'";
+
+        PreparedStatement ps = connection.prepareStatement(query);
+        ps.setInt(1, userID);
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            int bookID = rs.getInt("bookID");
+            String message = "Your reserved book (ID: " + bookID + ") is now available for pickup.";
+
+            // Check if notification already exists
+            PreparedStatement checkNotif = connection.prepareStatement(
+                "SELECT COUNT(*) FROM Notifications WHERE userID = ? AND message = ?"
+            );
+            checkNotif.setInt(1, userID);
+            checkNotif.setString(2, message);
+            ResultSet notifRs = checkNotif.executeQuery();
+
+            if (notifRs.next() && notifRs.getInt(1) == 0) { // If no existing notification
+                PreparedStatement insertNotif = connection.prepareStatement(
+                    "INSERT INTO Notifications (userID, message) VALUES (?, ?)");
+                insertNotif.setInt(1, userID);
+                insertNotif.setString(2, message);
+                insertNotif.executeUpdate();
+                insertNotif.close();
+            }
+            
+            notifRs.close();
+            checkNotif.close();
+        }
+
+        rs.close();
+        ps.close();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+
+
     private void checkOverdueBooks() {
     try {
         String query = "SELECT borrowID, bookID, dueDate FROM BorrowedBooks WHERE userID = ? AND dueDate < CURDATE()";
@@ -134,13 +365,29 @@ public class MemberDashboard extends JFrame {
             String dueDate = rs.getString("dueDate");
             String message = "Your borrowed book (ID: " + bookID + ") is overdue since " + dueDate + ".";
 
-            // Insert notification
-            PreparedStatement insertNotif = connection.prepareStatement(
-                "INSERT INTO Notifications (userID, message) VALUES (?, ?)");
-            insertNotif.setInt(1, userID);
-            insertNotif.setString(2, message);
-            insertNotif.executeUpdate();
+            // Check if notification already exists
+            PreparedStatement checkNotif = connection.prepareStatement(
+                "SELECT COUNT(*) FROM Notifications WHERE userID = ? AND message = ?"
+            );
+            checkNotif.setInt(1, userID);
+            checkNotif.setString(2, message);
+            ResultSet notifRs = checkNotif.executeQuery();
+
+            if (notifRs.next() && notifRs.getInt(1) == 0) { // If no existing notification
+                PreparedStatement insertNotif = connection.prepareStatement(
+                    "INSERT INTO Notifications (userID, message) VALUES (?, ?)");
+                insertNotif.setInt(1, userID);
+                insertNotif.setString(2, message);
+                insertNotif.executeUpdate();
+                insertNotif.close();
+            }
+            
+            notifRs.close();
+            checkNotif.close();
         }
+
+        rs.close();
+        ps.close();
     } catch (SQLException e) {
         e.printStackTrace();
     }
@@ -378,15 +625,5 @@ public class MemberDashboard extends JFrame {
 }
 
     
-    private void loadUserProfile() {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT name, email, address, contact FROM Users WHERE userID = ?")) {
-            stmt.setInt(1, userID);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                userProfileLabel.setText("User: " + rs.getString("name") + " (" + rs.getString("email") + ")");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+    
 }
