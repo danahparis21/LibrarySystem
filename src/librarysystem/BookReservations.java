@@ -129,16 +129,30 @@ public class BookReservations extends JFrame {
     
     private void loadBooks() {
         try (
-             Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT bookID, title, author, quantity, genre, location FROM Books WHERE quantity <= 1")) {
+            Statement stmt = connection.createStatement();
+            ResultSet rs = stmt.executeQuery(
+                "SELECT DISTINCT b.bookID, b.title, b.author, b.quantity, b.genre, b.location " +
+                "FROM Books b " +
+                "INNER JOIN Reservations r ON b.bookID = r.bookID " +
+                "WHERE r.status != 'Cancelled'"
+            )
+        ) {
             booksModel.setRowCount(0);
             while (rs.next()) {
-                booksModel.addRow(new Object[]{rs.getInt("bookID"), rs.getString("title"), rs.getString("author"), rs.getInt("quantity"), rs.getString("genre"), rs.getString("location")});
+                booksModel.addRow(new Object[]{
+                    rs.getInt("bookID"),
+                    rs.getString("title"),
+                    rs.getString("author"),
+                    rs.getInt("quantity"),
+                    rs.getString("genre"),
+                    rs.getString("location")
+                });
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
     
     private void loadReservations() {
         int selectedRow = booksTable.getSelectedRow();
@@ -179,53 +193,65 @@ public class BookReservations extends JFrame {
     }
     
     private void notifyUser() {
-    if (booksTable.getSelectedRow() == -1) {
-        JOptionPane.showMessageDialog(this, "Please select a book first.", "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-
-    if (reservationsModel.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(this, "No reservations for this book.", "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-
-    // Get the first pending reservation
-    int pendingIndex = -1;
-    for (int i = 0; i < reservationsModel.getRowCount(); i++) {
-        if ("Pending".equals(reservationsModel.getValueAt(i, 5))) { // 'Status' column is index 5
-            pendingIndex = i;
-            break;
-        }
-    }
-
-    if (pendingIndex == -1) {
-        JOptionPane.showMessageDialog(this, "No pending reservations.", "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-
-    String email = (String) reservationsModel.getValueAt(pendingIndex, 3); // Corrected email index
-    String bookTitle = (String) booksModel.getValueAt(booksTable.getSelectedRow(), 1);
-    int userID = (int) reservationsModel.getValueAt(pendingIndex, 1); // Corrected userID index
-
-    try {
-        NotifyReservation.sendEmail(email, bookTitle);
-
-        // Update reservation status to 'Notified'
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE Reservations SET status = 'Notified' WHERE userID = ? AND bookID = ?")) {
-            stmt.setInt(1, userID);
-            stmt.setInt(2, (int) booksModel.getValueAt(booksTable.getSelectedRow(), 0));
-            stmt.executeUpdate();
+        if (booksTable.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a book first.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
-        loadReservations(); // Refresh table
+        if (reservationsModel.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "No reservations for this book.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        JOptionPane.showMessageDialog(this, "Notification sent to " + email, "Success", JOptionPane.INFORMATION_MESSAGE);
-    } catch (Exception e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Failed to send email.", "Error", JOptionPane.ERROR_MESSAGE);
+        // Get the first pending reservation
+        int pendingIndex = -1;
+        for (int i = 0; i < reservationsModel.getRowCount(); i++) {
+            if ("Pending".equals(reservationsModel.getValueAt(i, 5))) { // 'Status' column is index 5
+                pendingIndex = i;
+                break;
+            }
+        }
+
+        if (pendingIndex == -1) {
+            JOptionPane.showMessageDialog(this, "No pending reservations.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String email = (String) reservationsModel.getValueAt(pendingIndex, 3); // Corrected email index
+        String bookTitle = (String) booksModel.getValueAt(booksTable.getSelectedRow(), 1);
+        int userID = (int) reservationsModel.getValueAt(pendingIndex, 1); // Corrected userID index
+
+        // Ask for confirmation before proceeding
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to notify the next user for \"" + bookTitle + "\"?",
+            "Confirm Notification",
+            JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return; // Do nothing if user selects No
+        }
+    
+        try {
+            NotifyReservation.sendEmail(email, bookTitle);
+
+            // Update reservation status to 'Notified'
+            try (PreparedStatement stmt = connection.prepareStatement(
+                    "UPDATE Reservations SET status = 'Notified' WHERE userID = ? AND bookID = ?")) {
+                stmt.setInt(1, userID);
+                stmt.setInt(2, (int) booksModel.getValueAt(booksTable.getSelectedRow(), 0));
+                stmt.executeUpdate();
+            }
+
+            loadReservations(); // Refresh table
+
+            JOptionPane.showMessageDialog(this, "Notification sent to " + email, "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to send email.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
-}
 
     
     public static void main(String[] args) {

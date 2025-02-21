@@ -90,6 +90,17 @@ public class BorrowReturn extends JFrame {
 
         String userPhone = "+639605574527";  // Use fixed phone number directly
 
+        // Confirm before sending the notification
+        int confirm = JOptionPane.showConfirmDialog(
+            null,
+            "Are you sure you want to notify the user for the overdue book \"" + bookTitle + "\"?",
+            "Confirm Notification",
+            JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return; // Cancel if the user selects "No"
+        }
         // Send the notifications
         if (userEmail != null && userPhone != null) {
             sendEmail(userEmail, bookTitle);
