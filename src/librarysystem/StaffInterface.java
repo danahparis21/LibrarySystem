@@ -16,9 +16,24 @@ public class StaffInterface extends JFrame {
     // Constructor
     public StaffInterface() {
         setTitle("Library Staff Interface");
-        setSize(800, 600);
+        setSize(1920, 1080);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
+        getContentPane().setBackground(Color.WHITE);
+
+        
+       // Load the original image
+        ImageIcon icon = new ImageIcon(getClass().getResource("/icons/header3.png"));
+
+        // Scale the image to fit the desired size (1920x70)
+        Image image = icon.getImage().getScaledInstance(1920, 70, Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(image);
+
+        // Apply the scaled image to JLabel
+        JLabel header = new JLabel(scaledIcon);
+        header.setBounds(0, 0, 1920, 70);
+        add(header);
+
 
         // Table setup
         tableModel = new DefaultTableModel(new String[]{"Book ID", "Title", "Author", "ISBN", "Genre", "Quantity", "Location"}, 0);

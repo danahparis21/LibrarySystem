@@ -20,7 +20,7 @@ public class BookReservations extends JFrame {
         setLayout(null);
         connection = Database.connect();
 
-        booksModel = new DefaultTableModel(new String[]{"Book ID", "Title", "Author", "ISBN", "Genre", "Location"}, 0);
+        booksModel = new DefaultTableModel(new String[]{"Book ID", "Title", "Author", "Quantity", "Genre", "Location"}, 0);
         booksTable = new JTable(booksModel);
         JScrollPane booksScroll = new JScrollPane(booksTable);
         booksScroll.setBounds(20, 20, 750, 200);
@@ -58,10 +58,10 @@ public class BookReservations extends JFrame {
     private void loadBooks() {
         try (
              Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT bookID, title, author, ISBN, genre, location FROM Books WHERE quantity = 0")) {
+             ResultSet rs = stmt.executeQuery("SELECT bookID, title, author, quantity, genre, location FROM Books WHERE quantity <= 1")) {
             booksModel.setRowCount(0);
             while (rs.next()) {
-                booksModel.addRow(new Object[]{rs.getInt("bookID"), rs.getString("title"), rs.getString("author"), rs.getString("ISBN"), rs.getString("genre"), rs.getString("location")});
+                booksModel.addRow(new Object[]{rs.getInt("bookID"), rs.getString("title"), rs.getString("author"), rs.getInt("quantity"), rs.getString("genre"), rs.getString("location")});
             }
         } catch (SQLException e) {
             e.printStackTrace();

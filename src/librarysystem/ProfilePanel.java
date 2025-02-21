@@ -21,7 +21,7 @@ class ProfilePanel extends JPanel {
         if (backgroundImage != null) {
             g2.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         } else {
-            System.out.println("Background image is null!");
+            //System.out.println("Background image is null!");
         }
 
         // Draw rounded background over image

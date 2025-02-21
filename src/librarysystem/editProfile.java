@@ -13,68 +13,105 @@ public class editProfile extends JFrame {
     public editProfile(int userID) {
         this.userID = userID;
         setTitle("Edit Profile");
-        setSize(400, 450);
-        setLayout(null); // Using null layout
+        setSize(420, 500);
+        setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setResizable(false);
+        
         connection = Database.connect();
 
-        // Labels
-        JLabel nameLabel = new JLabel("Name:");
-        nameLabel.setBounds(30, 30, 100, 25);
-        add(nameLabel);
+        // Main Panel
+        JPanel panel = new JPanel();
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel emailLabel = new JLabel("Email:");
-        emailLabel.setBounds(30, 70, 100, 25);
-        add(emailLabel);
+        // Title Label
+        JLabel titleLabel = new JLabel("Edit Profile");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        panel.add(titleLabel, gbc);
 
-        JLabel addressLabel = new JLabel("Address:");
-        addressLabel.setBounds(30, 110, 100, 25);
-        add(addressLabel);
+        // Labels & Text Fields
+        gbc.gridwidth = 1;
+        String[] labels = {"Name:", "Email:", "Address:", "Contact:", "Bio:"};
+        JTextField[] fields = {nameField = new JTextField(), emailField = new JTextField(),
+                               addressField = new JTextField(), contactField = new JTextField()};
+        
+        for (int i = 0; i < labels.length; i++) {
+            gbc.gridx = 0;
+            gbc.gridy = i + 1;
+            JLabel label = new JLabel(labels[i]);
+            label.setFont(new Font("Arial", Font.PLAIN, 14));
+            panel.add(label, gbc);
 
-        JLabel contactLabel = new JLabel("Contact:");
-        contactLabel.setBounds(30, 150, 100, 25);
-        add(contactLabel);
+            gbc.gridx = 1;
+            if (i < 4) {
+                fields[i].setFont(new Font("Arial", Font.PLAIN, 14));
+                fields[i].setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+                fields[i].setPreferredSize(new Dimension(200, 30));
+                panel.add(fields[i], gbc);
+            } else {
+                bioField = new JTextArea(3, 20);
+                bioField.setFont(new Font("Arial", Font.PLAIN, 14));
+                bioField.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+                bioField.setLineWrap(true);
+                bioField.setWrapStyleWord(true);
+                JScrollPane bioScroll = new JScrollPane(bioField);
+                bioScroll.setPreferredSize(new Dimension(200, 80));
+                panel.add(bioScroll, gbc);
+            }
+        }
 
-        JLabel bioLabel = new JLabel("Bio:");
-        bioLabel.setBounds(30, 190, 100, 25);
-        add(bioLabel);
+        // Buttons Panel
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE);
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
 
-        // Text Fields
-        nameField = new JTextField();
-        nameField.setBounds(130, 30, 200, 25);
-        add(nameField);
-
-        emailField = new JTextField();
-        emailField.setBounds(130, 70, 200, 25);
-        add(emailField);
-
-        addressField = new JTextField();
-        addressField.setBounds(130, 110, 200, 25);
-        add(addressField);
-
-        contactField = new JTextField();
-        contactField.setBounds(130, 150, 200, 25);
-        add(contactField);
-
-        // Multi-line Bio Field (supports emojis, nullable)
-        bioField = new JTextArea();
-        bioField.setLineWrap(true);
-        bioField.setWrapStyleWord(true);
-        JScrollPane bioScroll = new JScrollPane(bioField); // Scrollable
-        bioScroll.setBounds(130, 190, 200, 80);
-        add(bioScroll);
-
-        // Buttons
         saveButton = new JButton("Save");
-        saveButton.setBounds(80, 300, 100, 30);
-        saveButton.addActionListener(e -> updateProfile());
-        add(saveButton);
-
         cancelButton = new JButton("Cancel");
-        cancelButton.setBounds(200, 300, 100, 30);
-        cancelButton.addActionListener(e -> dispose());
-        add(cancelButton);
 
+        JButton[] buttons = {saveButton, cancelButton};
+        for (JButton button : buttons) {
+            button.setFont(new Font("Arial", Font.BOLD, 14));
+            button.setPreferredSize(new Dimension(120, 35));
+            button.setFocusPainted(false);
+            button.setBorder(BorderFactory.createLineBorder(new Color(70, 130, 180), 2));
+            button.setBackground(Color.WHITE);
+            button.setForeground(new Color(70, 130, 180));
+
+            // Hover Effect
+            button.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    button.setBackground(new Color(70, 130, 180));
+                    button.setForeground(Color.WHITE);
+                }
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    button.setBackground(Color.WHITE);
+                    button.setForeground(new Color(70, 130, 180));
+                }
+            });
+        }
+
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+
+        gbc.gridx = 0;
+        gbc.gridy = labels.length + 1;
+        gbc.gridwidth = 2;
+        panel.add(buttonPanel, gbc);
+
+        // Button Actions
+        saveButton.addActionListener(e -> updateProfile());
+        cancelButton.addActionListener(e -> dispose());
+
+        add(panel);
         loadUserData();
         setVisible(true);
     }
