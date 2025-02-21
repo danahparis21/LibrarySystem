@@ -65,7 +65,9 @@ public class MemberDashboard extends JFrame {
 
         // Status Label
         statusLabel = new JLabel();
-        statusLabel.setBounds(20, 10, 600, 30);
+        statusLabel.setBounds(800, 20, 600, 30);
+        statusLabel.setFont(new Font("Serif", Font.ITALIC, 12)); // Bigger and italicized
+        
         add(statusLabel);
 
         //=====BOOKS PANEL!    
@@ -93,7 +95,7 @@ public class MemberDashboard extends JFrame {
         booksPanel.setBounds(20, 80, 850, 300); // Smaller panel size
 
         // Book List Table
-        String[] bookColumns = {"Book ID", "Title", "Author", "Genre"};
+        String[] bookColumns = {"Book ID", "Title", "Author", "Genre", "Quantity", "Location"};
         bookTable = new JTable(new DefaultTableModel(bookColumns, 0));
         styleTable(bookTable);
         JScrollPane bookScrollPane = new JScrollPane(bookTable);
@@ -433,7 +435,7 @@ public class MemberDashboard extends JFrame {
                             "⚠️ Overdue Notice!\nPlease go to the Library to return the book and pay fines.", 
                             "Overdue Alert", JOptionPane.WARNING_MESSAGE);
                     }
-                    if (selectedNotification.contains("reservation")) {
+                    if (selectedNotification.contains("reserved")) {
                         JOptionPane.showMessageDialog(this, 
                             "✅ Your Book is Ready!\nProceed to the Library to Pick up your Book!\nThanks for your patience.", 
                             "Reservation Ready", JOptionPane.INFORMATION_MESSAGE);

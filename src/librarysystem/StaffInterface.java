@@ -4,11 +4,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import javax.swing.border.LineBorder;
+import javax.swing.table.JTableHeader;
 
 public class StaffInterface extends JFrame {
      private JTable bookTable;
     private DefaultTableModel tableModel;
-    private JButton addButton, updateButton, deleteButton, refreshButton, searchButton, bookReservationsButton;
+    private JButton addButton, updateButton, deleteButton, refreshButton, searchButton;
     private JTextField searchField;
     private JComboBox<String> searchFilter;
     private Connection connection;
@@ -33,68 +35,84 @@ public class StaffInterface extends JFrame {
         JLabel header = new JLabel(scaledIcon);
         header.setBounds(0, 0, 1920, 70);
         add(header);
+        
+        JPanel panel = new JPanel();
+                panel.setBounds(20, 100, 1200, 90);
+                panel.setBackground(Color.WHITE);
+                panel.setLayout(null);
+                panel.setBorder(new LineBorder(Color.GRAY, 1));
+                add(panel);
+                
+          
+                
+        searchField = new JTextField();
+        searchField.setBounds(20, 30, 200, 50);
+        panel.add(searchField);
 
+       searchFilter = new JComboBox<>(new String[]{"Title", "Author", "Genre", "ISBN", "Publisher", "Publication Year", "Location", "Quantity"});
+        searchFilter.setBounds(280, 30, 150, 50);
+        searchFilter.setBackground(Color.WHITE); // White background
+        searchFilter.setForeground(new Color(0x393939)); // Dark gray text
+        searchFilter.setFont(new Font("Arial", Font.PLAIN, 16)); // Bigger font
+        searchFilter.setBorder(BorderFactory.createLineBorder(new Color(0x393939), 2)); // Dark gray border
+
+        panel.add(searchFilter);
+
+
+    
+        searchButton = createButton("Search", 450, 30, panel);
+    
+        
+        
+        
+        
 
         // Table setup
-        tableModel = new DefaultTableModel(new String[]{"Book ID", "Title", "Author", "ISBN", "Genre", "Quantity", "Location"}, 0);
+        tableModel = new DefaultTableModel(new String[]{"Book ID", "Title", "Author", "ISBN", "Genre", "Publisher", "Publication Year", "Quantity", "Location"}, 0);
         bookTable = new JTable(tableModel);
         JScrollPane tableScroll = new JScrollPane(bookTable);
-        tableScroll.setBounds(30, 30, 700, 300);
+        tableScroll.setBounds(20, 200, 1200, 350);
+        styleTable(bookTable);
         add(tableScroll);
 
-        // Add button
-        addButton = new JButton("Add Book");
-        addButton.setBounds(30, 350, 120, 30);
-        add(addButton);
-
-        // Update button
-        updateButton = new JButton("Update Book");
-        updateButton.setBounds(170, 350, 120, 30);
-        add(updateButton);
-
-        // Delete button
-        deleteButton = new JButton("Delete Book");
-        deleteButton.setBounds(310, 350, 120, 30);
-        add(deleteButton);
+        //BUTTONS
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBounds(20, 560, 1200, 90);
+        buttonPanel.setBackground(Color.WHITE);
+        buttonPanel.setLayout(null);
+        buttonPanel.setBorder(new LineBorder(Color.GRAY, 1));
+        add(buttonPanel);
         
-        refreshButton = new JButton("Refresh");
-        refreshButton.setBounds(450, 350, 120, 30);
-        add(refreshButton);
+        // Buttons
+        addButton = createButton("Add Book", 50, 20, buttonPanel);
+        updateButton = createButton("Update Book", 350, 20, buttonPanel);
+        deleteButton = createButton("Delete Book", 650, 20, buttonPanel);
+        refreshButton = createButton("Refresh", 950, 20, buttonPanel);
+        
+      
         // Connect to the database
         connection = Database.connect();
 
         // Sample data
         loadBookData();
         
-        searchField = new JTextField();
-        searchField.setBounds(30, 400, 200, 30);
-        add(searchField);
-
-        searchFilter = new JComboBox<>(new String[]{"Title", "Author", "Genre", "ISBN", "Location", "Quantity"});
-        searchFilter.setBounds(240, 400, 120, 30);
-        add(searchFilter);
-
-        searchButton = new JButton("Search");
-        searchButton.setBounds(380, 400, 100, 30);
-        add(searchButton);
-        // Member Management button
-        JButton manageMembersButton = new JButton("Manage Members");
-        manageMembersButton.setBounds(30, 450, 160, 30);
-        add(manageMembersButton);
-
-        // Borrow & Return button
-        JButton borrowReturnButton = new JButton("Borrow/Return");
-        borrowReturnButton.setBounds(210, 450, 160, 30);
-        add(borrowReturnButton);
+        //OTHER BUTTONS
+         //OTHER BUTTONS
+        JPanel panel2 = new JPanel();
+        panel2.setBounds(1250, 100, 250, 690);
+        panel2.setBackground(Color.WHITE);
+        panel2.setLayout(null);
+        panel2.setBorder(new LineBorder(Color.GRAY, 1));
+        add(panel2);
         
-        // Borrow & Return button
-        bookReservationsButton = new JButton("Book Reservations");
-        bookReservationsButton.setBounds(390, 450, 160, 30);
-        add(bookReservationsButton);
         
-        JButton dataAnalyticsButton = new JButton("Data Analytics");
-        dataAnalyticsButton.setBounds(570, 450, 160, 30);
-        add(dataAnalyticsButton);
+        JButton manageMembersButton = createButton("Manage Members", 25, 50, panel2);
+        JButton borrowReturnButton = createButton("Borrow/Return", 25, 120, panel2);
+        JButton bookReservationsButton = createButton("Book Reservations", 25, 190, panel2);
+        JButton dataAnalyticsButton = createButton("Data Analytics", 25, 260, panel2);
+        JButton logOut = createButton("Log Out", 25, 330, panel2);
+        
+      
 
         // Open Member Management Window
         manageMembersButton.addActionListener(e -> new ManageMembers().setVisible(true));
@@ -112,11 +130,92 @@ public class StaffInterface extends JFrame {
         updateButton.addActionListener(e -> updateBook());
         deleteButton.addActionListener(e -> deleteBook());
         searchButton.addActionListener(e -> searchBooks());
-
+        
+        logOut.addActionListener(e -> logOut());
         setVisible(true);
     }
+    
+        private void logOut(){
+            new LogInForm();
+            dispose();
+        }
+     private JLabel createLabel(String text, int x, int y, JPanel panel) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Times New Roman", Font.BOLD, 20));
+        label.setBounds(x, y, 150, 30);
+        panel.add(label);
+        return label;
+    }
 
-    // Sample method to load some data into the table
+    private JTextField createTextField(String text, int x, int y, JPanel panel) {
+        JTextField textField = new JTextField(text);
+        textField.setFont(new Font("Times New Roman", Font.PLAIN, 20));
+        textField.setBounds(x, y, 100, 35);
+        panel.add(textField);
+        return textField;
+    }
+
+    private JButton createButton(String text, int x, int y, JPanel panel) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("SansSerif", Font.BOLD, 14));
+        button.setBounds(x, y, 200, 50);
+
+        // Default colors
+        Color defaultBg = new Color(0x393939);
+        Color defaultFg = Color.WHITE;
+        Color hoverBg = Color.WHITE;
+        Color hoverFg = new Color(0x393939);
+
+        // Apply default styling
+        button.setBackground(defaultBg);
+        button.setForeground(defaultFg);
+        button.setBorder(BorderFactory.createLineBorder(defaultBg, 2));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+
+        // Add hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(hoverBg);
+                button.setForeground(hoverFg);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(defaultBg);
+                button.setForeground(defaultFg);
+            }
+        });
+
+        panel.add(button);
+        return button;
+    }
+
+    private void styleTable(JTable table) {
+        // Table Header Styling
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("SansSerif", Font.BOLD, 16));
+        header.setBackground(new Color(0x393939)); // Dark Gray
+        header.setForeground(Color.WHITE);
+        header.setOpaque(true);
+
+        // Table Body Styling
+        table.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        table.setRowHeight(30);
+        table.setBackground(Color.WHITE);
+        table.setForeground(new Color(0x393939));
+        table.setGridColor(new Color(0xD3D3D3)); // Light Gray Grid
+        table.setShowGrid(false); // Hide default grid lines
+        table.setIntercellSpacing(new Dimension(0, 0)); // Remove default spacing
+
+        // Selection Styling
+        table.setSelectionBackground(new Color(0x393939));
+        table.setSelectionForeground(Color.WHITE);
+
+        // Borderless Look
+        table.setBorder(BorderFactory.createEmptyBorder());
+    }
     // Load book data from the database
 private void loadBookData() {
     try {
@@ -133,10 +232,12 @@ private void loadBookData() {
             String author = rs.getString("author");
             String isbn = rs.getString("ISBN");
             String genre = rs.getString("genre");
+            String publisher = rs.getString("publisher");
+            int publicationYear = rs.getInt("publicationYear");
             int quantity = rs.getInt("quantity");
             String location = rs.getString("location");
 
-            tableModel.addRow(new Object[]{bookID, title, author, isbn, genre, quantity, location});
+            tableModel.addRow(new Object[]{bookID, title, author, isbn, genre, publisher, publicationYear, quantity, location});
         }
     } catch (SQLException e) {
         e.printStackTrace();
@@ -167,6 +268,9 @@ private void searchBooks() {
                     rs.getString("author"),
                     rs.getString("ISBN"),
                     rs.getString("genre"),
+                    rs.getString("publisher"),
+                    rs.getInt("publicationYear"),
+
                     rs.getInt("quantity"),
                     rs.getString("location")
                 });
@@ -186,7 +290,7 @@ private void searchBooks() {
             
             new updateBook(bookID).setVisible(true);
         } else {
-            JOptionPane.showMessageDialog(this, "Select a room to update.");
+            JOptionPane.showMessageDialog(this, "Select a book to update.");
         }
         }
     

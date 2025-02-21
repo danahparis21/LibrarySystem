@@ -1,11 +1,15 @@
 package librarysystem;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.sql.*;
 import java.util.Properties;
 import javax.mail.*;
 import javax.mail.internet.*;
+import javax.swing.table.JTableHeader;
 
 public class BookReservations extends JFrame {
     private JTable booksTable, reservationsTable;
@@ -18,33 +22,39 @@ public class BookReservations extends JFrame {
         setTitle("Book Reservations");
         setSize(800, 600);
         setLayout(null);
+        getContentPane().setBackground(Color.WHITE);
         connection = Database.connect();
 
+        // Title Label
+        JLabel titleLabel = new JLabel("Book Reservations", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
+        titleLabel.setBounds(0, 10, 800, 30);
+        add(titleLabel);
+        
         booksModel = new DefaultTableModel(new String[]{"Book ID", "Title", "Author", "Quantity", "Genre", "Location"}, 0);
         booksTable = new JTable(booksModel);
+        styleTable(booksTable);
         JScrollPane booksScroll = new JScrollPane(booksTable);
-        booksScroll.setBounds(20, 20, 750, 200);
+        booksScroll.setBounds(20, 50, 750, 200);
         add(booksScroll);
         
-        reservationsModel = new DefaultTableModel(new String[]{"ReservationID","User ID", "Name", "Email", "Reservation Date", "Status"}, 0);
+        reservationsModel = new DefaultTableModel(new String[]{"ReservationID", "User ID", "Name", "Email", "Reservation Date", "Status"}, 0);
         reservationsTable = new JTable(reservationsModel);
+        styleTable(reservationsTable);
         JScrollPane reservationsScroll = new JScrollPane(reservationsTable);
-        reservationsScroll.setBounds(20, 250, 750, 200);
+        reservationsScroll.setBounds(20, 270, 750, 200);
         add(reservationsScroll);
         
-        notifyButton = new JButton("Notify Next User");
-        notifyButton.setBounds(300, 470, 200, 30);
+        notifyButton = createButton("Notify Next User", 300, 490);
         notifyButton.addActionListener(e -> notifyUser());
         add(notifyButton);
         
-        closeButton = new JButton("Close");
-        closeButton.setBounds(600, 470, 100, 30);
+        closeButton = createButton("Close", 600, 490);
         closeButton.addActionListener(e -> dispose());
         add(closeButton);
         
-        
         showCancelled = new JCheckBox("Show Cancelled");
-        showCancelled.setBounds(20, 470, 150, 30);
+        showCancelled.setBounds(20, 490, 150, 30);
         showCancelled.addActionListener(e -> loadReservations());
         add(showCancelled);
         
@@ -53,6 +63,68 @@ public class BookReservations extends JFrame {
         
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
+    }
+    
+    // Create Button with Styling
+    private JButton createButton(String text, int x, int y) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("SansSerif", Font.BOLD, 14));
+        button.setBounds(x, y, 180, 35);
+
+        // Default colors
+        Color defaultBg = new Color(0x393939);
+        Color defaultFg = Color.WHITE;
+        Color hoverBg = Color.WHITE;
+        Color hoverFg = new Color(0x393939);
+
+        // Apply default styling
+        button.setBackground(defaultBg);
+        button.setForeground(defaultFg);
+        button.setBorder(BorderFactory.createLineBorder(defaultBg, 2));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+
+        // Add hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(hoverBg);
+                button.setForeground(hoverFg);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(defaultBg);
+                button.setForeground(defaultFg);
+            }
+        });
+
+        return button;
+    }
+
+    private void styleTable(JTable table) {
+        // Table Header Styling
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("SansSerif", Font.BOLD, 16));
+        header.setBackground(new Color(0x393939)); // Dark Gray
+        header.setForeground(Color.WHITE);
+        header.setOpaque(true);
+
+        // Table Body Styling
+        table.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        table.setRowHeight(30);
+        table.setBackground(Color.WHITE);
+        table.setForeground(new Color(0x393939));
+        table.setGridColor(new Color(0xD3D3D3)); // Light Gray Grid
+        table.setShowGrid(false); // Hide default grid lines
+        table.setIntercellSpacing(new Dimension(0, 0)); // Remove default spacing
+
+        // Selection Styling
+        table.setSelectionBackground(new Color(0x393939));
+        table.setSelectionForeground(Color.WHITE);
+
+        // Borderless Look
+        table.setBorder(BorderFactory.createEmptyBorder());
     }
     
     private void loadBooks() {

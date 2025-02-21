@@ -1,5 +1,8 @@
 package librarysystem;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import javax.swing.*;
 import java.awt.event.*;
 import java.sql.*;
@@ -7,30 +10,38 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
 public class BorrowReturn extends JFrame {
 
     private JTextField userIDField, bookIDField;
-    private JButton borrowButton, returnButton, renewButton, payFineButton, refreshButton;
+    private JButton borrowButton, returnButton, renewButton, payFineButton, refreshButton, closeButton;
     private JLabel statusLabel;
     private JTable booksTable, borrowedBooksTable;
     private DefaultTableModel booksModel, borrowedModel;
     private Connection connection;
     String userPhone ;
 
-    public BorrowReturn() {
+      public BorrowReturn() {
         setTitle("Borrow/Return Books");
-        setSize(700, 500);
+        setSize(1100, 600);
         setLayout(null);
+        setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        getContentPane().setBackground(Color.WHITE); // Set background color
         connection = Database.connect();
 
+        JLabel titleLabel = new JLabel("Borrow / Return Books", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        titleLabel.setBounds(200, 10, 300, 30);
+        add(titleLabel);
+
         JLabel userIDLabel = new JLabel("User ID or Name:");
-        userIDLabel.setBounds(30, 30, 100, 25);
+        userIDLabel.setBounds(30, 50, 100, 25);
         add(userIDLabel);
 
         userIDField = new JTextField();
-        userIDField.setBounds(140, 30, 150, 25);
+        userIDField.setBounds(140, 50, 150, 25);
         add(userIDField);
         userIDField.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
@@ -39,31 +50,26 @@ public class BorrowReturn extends JFrame {
         });
 
         JLabel bookIDLabel = new JLabel("Book ID:");
-        bookIDLabel.setBounds(30, 70, 100, 25);
+        bookIDLabel.setBounds(30, 90, 100, 25);
         add(bookIDLabel);
 
         bookIDField = new JTextField();
-        bookIDField.setBounds(140, 70, 150, 25);
+        bookIDField.setBounds(140, 90, 150, 25);
         add(bookIDField);
 
-        borrowButton = new JButton("Borrow Book");
-        borrowButton.setBounds(30, 110, 120, 30);
+        borrowButton = createButton("Borrow Book", 300, 130);
         add(borrowButton);
 
-        returnButton = new JButton("Return Book");
-        returnButton.setBounds(160, 110, 120, 30);
+        returnButton = createButton("Return Book", 490, 130);
         add(returnButton);
 
-        renewButton = new JButton("Renew Book");
-        renewButton.setBounds(290, 110, 120, 30);
+        renewButton = createButton("Renew Book", 680, 130);
         add(renewButton);
 
-        payFineButton = new JButton("Pay Fine");
-        payFineButton.setBounds(30, 160, 120, 30);
+        payFineButton = createButton("Pay Fine", 300, 180);
         add(payFineButton);
         
-        JButton notifyButton = new JButton("Notify");
-        notifyButton.setBounds(290, 160, 120, 30);
+        JButton notifyButton = createButton("Notify", 490, 180);
         add(notifyButton);
         
         notifyButton.addActionListener(new ActionListener() {
@@ -95,16 +101,15 @@ public class BorrowReturn extends JFrame {
     }
 });
 
-
         statusLabel = new JLabel();
-        statusLabel.setBounds(30, 200, 400, 25);
+        statusLabel.setBounds(30, 220, 400, 25);
         add(statusLabel);
 
-        // Books Table
         booksModel = new DefaultTableModel(new String[]{"Book ID", "Title", "Stock"}, 0);
         booksTable = new JTable(booksModel);
+        styleTable(booksTable);
         JScrollPane bookScrollPane = new JScrollPane(booksTable);
-        bookScrollPane.setBounds(30, 240, 300, 200);
+        bookScrollPane.setBounds(30, 260, 500, 200);
         add(bookScrollPane);
         booksTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -113,13 +118,13 @@ public class BorrowReturn extends JFrame {
             }
         });
 
-        // Borrowed Books Table
         borrowedModel = new DefaultTableModel(new String[]{"Borrow ID", "User ID", "Book Title", "Borrow Date", "Due Date", "Status", "Fine"}, 0);
         borrowedBooksTable = new JTable(borrowedModel);
+        styleTable(borrowedBooksTable);
         JScrollPane borrowedScrollPane = new JScrollPane(borrowedBooksTable);
-        borrowedScrollPane.setBounds(350, 240, 320, 200);
+        borrowedScrollPane.setBounds(550, 260, 500, 200);
         add(borrowedScrollPane);
-
+        
         borrowedBooksTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 int row = borrowedBooksTable.getSelectedRow();
@@ -130,29 +135,91 @@ public class BorrowReturn extends JFrame {
             }
         });
         
-        refreshButton = new JButton("Refresh");
-        refreshButton.setBounds(150, 160, 120, 30);
+        refreshButton = createButton("Refresh", 680, 180);
         add(refreshButton);
         
-        
+        closeButton = createButton("Close", 870, 180);
+        add(closeButton);
 
+        closeButton.addActionListener(e -> dispose());
         borrowButton.addActionListener(e -> borrowBook());
         returnButton.addActionListener(e -> returnBook());
         renewButton.addActionListener(e -> renewBook());
         payFineButton.addActionListener(e -> payFine());
         refreshButton.addActionListener(e -> {
-        loadBooks();
-        if (!userIDField.getText().trim().isEmpty()) {
-            loadBorrowedBooks();
-        } else {
-            borrowedModel.setRowCount(0); // Clear table if no user ID
-        }
-    });
-
-
-
+            loadBooks();
+            if (!userIDField.getText().trim().isEmpty()) {
+                loadBorrowedBooks();
+            } else {
+                borrowedModel.setRowCount(0);
+            }
+        });
         loadBooks();
     }
+
+    
+    // Create Button with Styling
+    private JButton createButton(String text, int x, int y) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("SansSerif", Font.BOLD, 14));
+        button.setBounds(x, y, 180, 35);
+
+        // Default colors
+        Color defaultBg = new Color(0x393939);
+        Color defaultFg = Color.WHITE;
+        Color hoverBg = Color.WHITE;
+        Color hoverFg = new Color(0x393939);
+
+        // Apply default styling
+        button.setBackground(defaultBg);
+        button.setForeground(defaultFg);
+        button.setBorder(BorderFactory.createLineBorder(defaultBg, 2));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+
+        // Add hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(hoverBg);
+                button.setForeground(hoverFg);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(defaultBg);
+                button.setForeground(defaultFg);
+            }
+        });
+
+        return button;
+    }
+
+    private void styleTable(JTable table) {
+        // Table Header Styling
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("SansSerif", Font.BOLD, 16));
+        header.setBackground(new Color(0x393939)); // Dark Gray
+        header.setForeground(Color.WHITE);
+        header.setOpaque(true);
+
+        // Table Body Styling
+        table.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        table.setRowHeight(30);
+        table.setBackground(Color.WHITE);
+        table.setForeground(new Color(0x393939));
+        table.setGridColor(new Color(0xD3D3D3)); // Light Gray Grid
+        table.setShowGrid(false); // Hide default grid lines
+        table.setIntercellSpacing(new Dimension(0, 0)); // Remove default spacing
+
+        // Selection Styling
+        table.setSelectionBackground(new Color(0x393939));
+        table.setSelectionForeground(Color.WHITE);
+
+        // Borderless Look
+        table.setBorder(BorderFactory.createEmptyBorder());
+    }
+    
     private int getUserID(String input) {
         try {
             int userID = Integer.parseInt(input);

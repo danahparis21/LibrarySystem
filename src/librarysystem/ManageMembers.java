@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
 public class ManageMembers extends JFrame {
     private JTextField searchField, nameField, emailField, contactField, addressField;
@@ -13,70 +14,120 @@ public class ManageMembers extends JFrame {
     private DefaultTableModel tableModel;
      private Connection connection;
 
+  
+
     public ManageMembers() {
-        setTitle("ManageMembers");
-        setSize(800, 600);
+        setTitle("Manage Members");
+        setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
-        
-        setLayout(null);  // Using null layout for precise placement of components
-             // Connect to the database
-        connection = Database.connect();
-        // Initialize components
+        setLayout(null);
+        getContentPane().setBackground(Color.WHITE);
+        setLocationRelativeTo(null);
+
+        connection = Database.connect(); // Connect to database
+
+        // Title Label
+        JLabel titleLabel = new JLabel("MANAGE MEMBERS");
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
+        titleLabel.setForeground(new Color(0x393939));
+        titleLabel.setBounds(350, 10, 300, 30);
+        add(titleLabel);
+
+        // Search Field
         searchField = new JTextField();
-        searchButton = new JButton("Search");
-        viewButton = new JButton("View All Members");
-        updateButton = new JButton("Update Member");
-        deleteButton = new JButton("Delete Member");
-        
-        nameField = new JTextField();
-        emailField = new JTextField();
-        contactField = new JTextField();
-        addressField = new JTextField();
-
-        tableModel = new DefaultTableModel(new String[]{"ID", "Name", "Email", "Contact", "Address", "Role"}, 0);
-        memberTable = new JTable(tableModel);
-        tableScroll = new JScrollPane(memberTable);
-
-        // Place components on panel
-        searchField.setBounds(50, 20, 200, 25);
-        searchButton.setBounds(260, 20, 100, 25);
-        viewButton.setBounds(50, 60, 150, 25);
-        updateButton.setBounds(220, 60, 150, 25);
-        deleteButton.setBounds(50, 100, 150, 25);
-       
-
-        nameField.setBounds(50, 140, 200, 25);
-        emailField.setBounds(50, 180, 200, 25);
-        contactField.setBounds(50, 220, 200, 25);
-        addressField.setBounds(50, 260, 200, 25);
-
-        tableScroll.setBounds(300, 100, 400, 200);
-
-        // Add components to panel
+        searchField.setBounds(50, 50, 250, 30);
         add(searchField);
+
+        // Buttons
+        searchButton = createButton("Search", 320, 50);
+        viewButton = createButton("View All Members", 50, 100);
+        deleteButton = createButton("Delete Member", 220, 100);
+        closeButton = createButton("Close", 50, 500); // Close button at the bottom
+
         add(searchButton);
         add(viewButton);
-        add(updateButton);
         add(deleteButton);
-        add(nameField);
-        add(emailField);
-        add(contactField);
-        add(addressField);
+        add(closeButton);
+
+        // Table Model & Table
+        tableModel = new DefaultTableModel(new String[]{"ID", "Name", "Email", "Contact", "Address", "Role"}, 0);
+        memberTable = new JTable(tableModel);
+        styleTable(memberTable);
+
+        // Scroll Pane (Table)
+        tableScroll = new JScrollPane(memberTable);
+        tableScroll.setBounds(50, 150, 800, 330); // Made the table bigger
         add(tableScroll);
 
-        // Add action listeners
+        // Action Listeners
         searchButton.addActionListener(e -> searchMember());
         viewButton.addActionListener(e -> viewMembers());
-        updateButton.addActionListener(e -> updateMember());
         deleteButton.addActionListener(e -> deleteMember());
-     
-        closeButton = new JButton("Close");
-        closeButton.setBounds(50, 300, 150, 25); // Position it as desired
-        closeButton.addActionListener(e-> dispose()); // Exit the application when clicked
-        add(closeButton); // Add it to the panel
-        
+        closeButton.addActionListener(e -> dispose()); // Close window when clicked
+
         setVisible(true);
+    }
+
+    // Create Button with Styling
+    private JButton createButton(String text, int x, int y) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("SansSerif", Font.BOLD, 14));
+        button.setBounds(x, y, 180, 35);
+
+        // Default colors
+        Color defaultBg = new Color(0x393939);
+        Color defaultFg = Color.WHITE;
+        Color hoverBg = Color.WHITE;
+        Color hoverFg = new Color(0x393939);
+
+        // Apply default styling
+        button.setBackground(defaultBg);
+        button.setForeground(defaultFg);
+        button.setBorder(BorderFactory.createLineBorder(defaultBg, 2));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+
+        // Add hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(hoverBg);
+                button.setForeground(hoverFg);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(defaultBg);
+                button.setForeground(defaultFg);
+            }
+        });
+
+        return button;
+    }
+
+    private void styleTable(JTable table) {
+        // Table Header Styling
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("SansSerif", Font.BOLD, 16));
+        header.setBackground(new Color(0x393939)); // Dark Gray
+        header.setForeground(Color.WHITE);
+        header.setOpaque(true);
+
+        // Table Body Styling
+        table.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        table.setRowHeight(30);
+        table.setBackground(Color.WHITE);
+        table.setForeground(new Color(0x393939));
+        table.setGridColor(new Color(0xD3D3D3)); // Light Gray Grid
+        table.setShowGrid(false); // Hide default grid lines
+        table.setIntercellSpacing(new Dimension(0, 0)); // Remove default spacing
+
+        // Selection Styling
+        table.setSelectionBackground(new Color(0x393939));
+        table.setSelectionForeground(Color.WHITE);
+
+        // Borderless Look
+        table.setBorder(BorderFactory.createEmptyBorder());
     }
 
     // Search member based on search input
@@ -112,45 +163,42 @@ public class ManageMembers extends JFrame {
         }
     }
 
-    // Update member details
-    private void updateMember() {
-        // Get the values from the text fields
-        String name = nameField.getText();
-        String email = emailField.getText();
-        String contact = contactField.getText();
-        String address = addressField.getText();
-
-        // Check if all fields are filled
-        if (name.isEmpty() || email.isEmpty() || contact.isEmpty() || address.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill in all fields before updating.");
-            return; // Don't proceed with the update if any field is empty
-        }
-
-        // Get the selected row
-        int selectedRow = memberTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            int userID = (int) tableModel.getValueAt(selectedRow, 0);
-
-            // Perform the update operation
-            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/library", "root", "password")) {
-                String query = "UPDATE users SET name = ?, email = ?, contact = ?, address = ? WHERE userID = ?";
-                PreparedStatement ps = conn.prepareStatement(query);
-                ps.setString(1, name);
-                ps.setString(2, email);
-                ps.setString(3, contact);
-                ps.setString(4, address);
-                ps.setInt(5, userID);
-                ps.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Member details updated successfully!");
-                viewMembers(); // Refresh table after update
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-
-
+//    // Update member details
+//    private void updateMember() {
+//        // Get the values from the text fields
+//        String name = nameField.getText();
+//        String email = emailField.getText();
+//        String contact = contactField.getText();
+//        String address = addressField.getText();
+//
+//        // Check if all fields are filled
+//        if (name.isEmpty() || email.isEmpty() || contact.isEmpty() || address.isEmpty()) {
+//            JOptionPane.showMessageDialog(this, "Please fill in all fields before updating.");
+//            return; // Don't proceed with the update if any field is empty
+//        }
+//
+//        // Get the selected row
+//        int selectedRow = memberTable.getSelectedRow();
+//        if (selectedRow >= 0) {
+//            int userID = (int) tableModel.getValueAt(selectedRow, 0);
+//
+//            // Perform the update operation
+//            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/library", "root", "password")) {
+//                String query = "UPDATE users SET name = ?, email = ?, contact = ?, address = ? WHERE userID = ?";
+//                PreparedStatement ps = conn.prepareStatement(query);
+//                ps.setString(1, name);
+//                ps.setString(2, email);
+//                ps.setString(3, contact);
+//                ps.setString(4, address);
+//                ps.setInt(5, userID);
+//                ps.executeUpdate();
+//                JOptionPane.showMessageDialog(this, "Member details updated successfully!");
+//                viewMembers(); // Refresh table after update
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+//        }
+    //}
 
     // Delete selected member
     private void deleteMember() {

@@ -11,11 +11,13 @@ import java.util.ArrayList;
 
 public class DataAnalytics extends JFrame {
     private Connection connection;
+    private JButton closeButton;
 
     public DataAnalytics() {
         setTitle("Library Data Analytics");
         setSize(1920, 1080);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+      
+        getContentPane().setBackground(Color.WHITE);
         setLayout(null);
 
         // Create charts
@@ -26,12 +28,55 @@ public class DataAnalytics extends JFrame {
         // Add charts to panels and set positions
         addChart(borrowedBooksChart, 50, 20, 600, 400);
         addChart(reservedBooksChart, 700, 20, 800, 400);
-        addChart(genreChart, 80, 450, 300, 300);
+        addChart(genreChart, 90, 450, 500, 300);
 
         // Add low stock books list
-        addLowStockList(700, 470, 500, 300);
+        addLowStockList(700, 450, 500, 300);
+        
+        closeButton = createButton("Close", 850, 800); // Move it lower
+        add(closeButton);
+
+
+        closeButton.addActionListener(e -> dispose());
 
         setVisible(true);
+    }
+    
+    // Create Button with Styling
+    private JButton createButton(String text, int x, int y) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("SansSerif", Font.BOLD, 14));
+        button.setBounds(x, y, 180, 35);
+
+        // Default colors
+        Color defaultBg = new Color(0x393939);
+        Color defaultFg = Color.WHITE;
+        Color hoverBg = Color.WHITE;
+        Color hoverFg = new Color(0x393939);
+
+        // Apply default styling
+        button.setBackground(defaultBg);
+        button.setForeground(defaultFg);
+        button.setBorder(BorderFactory.createLineBorder(defaultBg, 2));
+        button.setFocusPainted(false);
+        button.setOpaque(true);
+
+        // Add hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(hoverBg);
+                button.setForeground(hoverFg);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(defaultBg);
+                button.setForeground(defaultFg);
+            }
+        });
+
+        return button;
     }
 
     private JFreeChart createBarChart(String title, String categoryLabel, String valueLabel, DefaultCategoryDataset dataset) {
@@ -113,7 +158,7 @@ public class DataAnalytics extends JFrame {
 
     private String[] getLowStockData() {
         ArrayList<String> lowStockBooks = new ArrayList<>();
-        String query = "SELECT title, quantity FROM Books WHERE quantity < 5 ORDER BY quantity ASC";
+        String query = "SELECT title, quantity FROM Books WHERE quantity < 1 ORDER BY quantity ASC";
         try (Connection con = getConnection(); Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 lowStockBooks.add(rs.getString("title") + " (" + rs.getInt("quantity") + " left)");
