@@ -112,7 +112,7 @@ public class LogInForm extends JFrame {
 
             if (role.equals("staff")) {
                 new StaffInterface().setVisible(true);
-                dispose();
+                 dispose();
             } else if (role.equals("member")) {
                 new MemberDashboard(userID).setVisible(true); // Pass userID to MemberDashboard
                 dispose();

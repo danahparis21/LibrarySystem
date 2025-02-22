@@ -25,8 +25,8 @@ public class NotifyReservation {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-            message.setSubject("Library Reservation Notification");
-            message.setText("Dear User,\n\nYour reserved book '" + bookTitle + "' is now available for pickup.\n\nThank you.");
+            message.setSubject("📢Library Reservation Notification");
+            message.setText("Dear User👤,\n\nYour reserved book '" + bookTitle + "' is now available for pickup.📚 \n\nThank you.✨");
 
             Transport.send(message);
             System.out.println("Email sent successfully to " + to);

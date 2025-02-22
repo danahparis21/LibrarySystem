@@ -29,8 +29,8 @@ public class SendEmail {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from)); // Set from address
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to)); // Set recipient
-            message.setSubject("Overdue Book Notification"); // Set subject
-            message.setText("Dear User, \n\nThis is a reminder that the book '" + bookTitle + "' is overdue. Please return it at your earliest convenience.\n\nThank you."); // Set message body
+            message.setSubject("⚠️Overdue Book Notification"); // Set subject
+            message.setText("Dear User👤, \n\nThis is a reminder that the book '" + bookTitle + "' is overdue. Please return it at your earliest convenience.⌛ \n\nThank you!📚"); // Set message body
 
             // Send the email
             Transport.send(message);

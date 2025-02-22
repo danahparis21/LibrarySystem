@@ -60,12 +60,12 @@ public class MemberDashboard extends JFrame {
         // Header Image
         ImageIcon icon = new ImageIcon(getClass().getResource("/icons/header2.png"));
         JLabel header = new JLabel(icon);
-        header.setBounds(0, 0, 800, 80);
+        header.setBounds(-5, 0, 800, 80);
         add(header);
 
         // Status Label
         statusLabel = new JLabel();
-        statusLabel.setBounds(800, 20, 600, 30);
+        statusLabel.setBounds(800, 50, 600, 30);
         statusLabel.setFont(new Font("Serif", Font.ITALIC, 12)); // Bigger and italicized
         
         add(statusLabel);
@@ -617,61 +617,105 @@ public class MemberDashboard extends JFrame {
         }
     }
 
-    private void viewBookDetails() {
-        int selectedRow = bookTable.getSelectedRow();
+        private void viewBookDetails() {
+         int selectedRow = bookTable.getSelectedRow();
 
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Please select a book to view details.", "No Book Selected", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+         if (selectedRow == -1) {
+             JOptionPane.showMessageDialog(this, "Please select a book to view details.", "No Book Selected", JOptionPane.WARNING_MESSAGE);
+             return;
+         }
 
-        int bookID = (int) bookTable.getValueAt(selectedRow, 0); // Assuming Book ID is the first column
+         int bookID = (int) bookTable.getValueAt(selectedRow, 0); // Assuming Book ID is the first column
 
-        try {
-            String query = "SELECT * FROM Books WHERE bookID = ?";
-            PreparedStatement pst = connection.prepareStatement(query);
-            pst.setInt(1, bookID);
-            ResultSet rs = pst.executeQuery();
+         try {
+             String query = "SELECT * FROM Books WHERE bookID = ?";
+             PreparedStatement pst = connection.prepareStatement(query);
+             pst.setInt(1, bookID);
+             ResultSet rs = pst.executeQuery();
 
-            if (rs.next()) {
-                // Fetch book details
-                String title = rs.getString("title");
-                String author = rs.getString("author");
-                String isbn = rs.getString("ISBN");
-                String genre = rs.getString("genre");
-                String publisher = rs.getString("publisher");
-                int publicationYear = rs.getInt("publicationYear");
-                int quantity = rs.getInt("quantity");
-                String location = rs.getString("location");
+             if (rs.next()) {
+                 // Fetch book details
+                 String title = rs.getString("title");
+                 String author = rs.getString("author");
+                 String isbn = rs.getString("ISBN");
+                 String genre = rs.getString("genre");
+                 String publisher = rs.getString("publisher");
+                 int publicationYear = rs.getInt("publicationYear");
+                 int quantity = rs.getInt("quantity");
+                 String location = rs.getString("location");
 
-                // Display details in a pop-up dialog
-                JDialog detailsDialog = new JDialog(this, "Book Details", true);
-                detailsDialog.setSize(400, 300);
-                detailsDialog.setLayout(new GridLayout(9, 1));
+                 // Create dialog
+                 JDialog detailsDialog = new JDialog(this, "Book Details", true);
+                 detailsDialog.setSize(500, 500);
+                 detailsDialog.setResizable(false);
+                 detailsDialog.setLayout(null);
+                 detailsDialog.getContentPane().setBackground(Color.WHITE);
+                 detailsDialog.setLocationRelativeTo(this);
 
-                detailsDialog.add(new JLabel("Title: " + title));
-                detailsDialog.add(new JLabel("Author: " + author));
-                detailsDialog.add(new JLabel("ISBN: " + isbn));
-                detailsDialog.add(new JLabel("Genre: " + genre));
-                detailsDialog.add(new JLabel("Publisher: " + publisher));
-                detailsDialog.add(new JLabel("Publication Year: " + publicationYear));
-                detailsDialog.add(new JLabel("Quantity: " + quantity));
-                detailsDialog.add(new JLabel("Location: " + location));
+                 // Font settings
+                 Font labelFont = new Font("SansSerif", Font.BOLD, 16);
+                 Font valueFont = new Font("SansSerif", Font.PLAIN, 16);
 
-                JButton closeButton = new JButton("Close");
-                closeButton.addActionListener(e -> detailsDialog.dispose());
-                detailsDialog.add(closeButton);
+                 // Add labels
+                 int y = 20;
+                 detailsDialog.add(createLabel("Title:", 20, y, labelFont));
+                 detailsDialog.add(createLabel(title, 140, y, valueFont));
 
-                detailsDialog.setLocationRelativeTo(this);
-                detailsDialog.setVisible(true);
-            }
+                 y += 40;
+                 detailsDialog.add(createLabel("Author:", 20, y, labelFont));
+                 detailsDialog.add(createLabel(author, 140, y, valueFont));
 
-            rs.close();
-            pst.close();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error retrieving book details: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+                 y += 40;
+                 detailsDialog.add(createLabel("ISBN:", 20, y, labelFont));
+                 detailsDialog.add(createLabel(isbn, 140, y, valueFont));
+
+                 y += 40;
+                 detailsDialog.add(createLabel("Genre:", 20, y, labelFont));
+                 detailsDialog.add(createLabel(genre, 140, y, valueFont));
+
+                 y += 40;
+                 detailsDialog.add(createLabel("Publisher:", 20, y, labelFont));
+                 detailsDialog.add(createLabel(publisher, 140, y, valueFont));
+
+                 y += 40;
+                 detailsDialog.add(createLabel("Publication Year:", 20, y, labelFont));
+                 detailsDialog.add(createLabel(String.valueOf(publicationYear), 200, y, valueFont));
+
+                 y += 40;
+                 detailsDialog.add(createLabel("Quantity:", 20, y, labelFont));
+                 detailsDialog.add(createLabel(String.valueOf(quantity), 140, y, valueFont));
+
+                 y += 40;
+                 detailsDialog.add(createLabel("Location:", 20, y, labelFont));
+                 detailsDialog.add(createLabel(location, 140, y, valueFont));
+
+                 // Close button
+                 JButton closeButton = new JButton("Close");
+                 closeButton.setBounds(180, y + 50, 120, 40);
+                 closeButton.setFont(new Font("SansSerif", Font.BOLD, 16));
+                 closeButton.setBackground( Color.WHITE);
+                 closeButton.setForeground(Color.BLACK);
+                 closeButton.addActionListener(e -> detailsDialog.dispose());
+                 detailsDialog.add(closeButton);
+
+                 detailsDialog.setVisible(true);
+             }
+
+             rs.close();
+             pst.close();
+         } catch (SQLException ex) {
+             JOptionPane.showMessageDialog(this, "Error retrieving book details: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+         }
+     }
+
+     // Helper method to create labels
+     private JLabel createLabel(String text, int x, int y, Font font) {
+         JLabel label = new JLabel(text);
+         label.setFont(font);
+         label.setBounds(x, y, 400, 30);
+         return label;
+     }
+
 
     // Method to update profile image
     private void updateProfileImage() {
@@ -1021,19 +1065,32 @@ public class MemberDashboard extends JFrame {
         }
     }
 
-    private void loadBorrowedBooks() {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT b.borrowID, b.bookID, bo.title, b.dueDate FROM BorrowedBooks b JOIN Books bo ON b.bookID = bo.bookID WHERE b.userID = ? and b.status != 'Returned'")) {
+   private void loadBorrowedBooks() {
+        try (PreparedStatement stmt = connection.prepareStatement(
+            "SELECT b.borrowID, b.bookID, bo.title, b.dueDate, b.status " +  // Include status
+            "FROM BorrowedBooks b " +
+            "JOIN Books bo ON b.bookID = bo.bookID " +
+            "WHERE b.userID = ? AND b.status != 'Returned'"
+        )) {
             stmt.setInt(1, userID);
             ResultSet rs = stmt.executeQuery();
             DefaultTableModel model = (DefaultTableModel) borrowedTable.getModel();
             model.setRowCount(0);
+
             while (rs.next()) {
-                model.addRow(new Object[]{rs.getInt("borrowID"), rs.getInt("bookID"), rs.getString("title"), rs.getDate("dueDate"), "Borrowed"});
+                model.addRow(new Object[]{
+                    rs.getInt("borrowID"),
+                    rs.getInt("bookID"),
+                    rs.getString("title"),
+                    rs.getDate("dueDate"),
+                    rs.getString("status")  // Now retrieves the actual status
+                });
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
 
     private void loadReservations() {
         try (PreparedStatement stmt = connection.prepareStatement("SELECT * FROM Reservations WHERE userID = ?")) {

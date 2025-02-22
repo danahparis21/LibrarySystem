@@ -49,7 +49,7 @@ public class User {
         }
     }
 
-    // Hash password using SHA-256
+    
     private static String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
